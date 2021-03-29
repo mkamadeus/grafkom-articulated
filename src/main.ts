@@ -1,23 +1,5 @@
 import "./styles/style.css";
 import {
-  cubeColors,
-  cubeIndices,
-  cubePositions,
-  cubeMaterial,
-} from "./models/cube";
-import {
-  tetrahedronColors,
-  tetrahedronIndices,
-  tetrahedronPositions,
-  tetrahedronMaterial,
-} from "./models/tetrahedron";
-import {
-  triangleColors,
-  triangleIndices,
-  trianglePositions,
-  triangleMaterial,
-} from "./models/triangle";
-import {
   multiplyMatrix,
   getScaleMatrix,
   getTranslationMatrix,
@@ -30,33 +12,15 @@ import {
   getLookAt,
   getObliqueMatrix,
 } from "./utils/Matrix4";
+import { subtractVector, addVector, transformVector } from "./utils/Vector3";
 
 import BodyVertexShader from "./shaders/BodyVertexShader.glsl";
 import BodyFragmentShader from "./shaders/BodyFragmentShader.glsl";
 import WireVertexShader from "./shaders/WireVertexShader.glsl";
 import WireFragmentShader from "./shaders/WireFragmentShader.glsl";
-import { subtractVector, addVector, transformVector } from "./utils/Vector3";
+import { steve } from "./models/steve";
 
-let models = {
-  1: {
-    positions: trianglePositions,
-    indices: triangleIndices,
-    colors: triangleColors,
-    material: triangleMaterial,
-  },
-  2: {
-    positions: cubePositions,
-    indices: cubeIndices,
-    colors: cubeColors,
-    material: cubeMaterial,
-  },
-  3: {
-    positions: tetrahedronPositions,
-    indices: tetrahedronIndices,
-    colors: tetrahedronColors,
-    material: tetrahedronMaterial,
-  },
-};
+const models: Model[] = [steve];
 
 let gl: WebGLRenderingContext | null = null;
 let programObject: WebGLProgram | null = null;
@@ -90,7 +54,7 @@ let shadingModeLocation: WebGLUniformLocation | null = null;
 
 let wireIndices = null;
 let matrix = Array(16).fill(0);
-let type: 1 | 2 | 3 = 1;
+let type: 0 | 1 | 2 = 0;
 let shadingMode = 1;
 let projMode = 1;
 let near = 1;
@@ -104,7 +68,7 @@ let cameraMatrix = Array(16).fill(0);
 let projectionMatrix = Array(16).fill(0);
 
 // Normal
-let cubeNormal = new Float32Array(cubePositions);
+let cubeNormal = new Float32Array();
 
 // Transformation variables
 let xRotation = 0;
@@ -168,6 +132,8 @@ function initModel() {
   );
   normalOffset = models[type].positions.byteLength;
   colorOffset = normalOffset + cubeNormal.byteLength;
+
+  // Store buffer data for position, normal, and colors
   gl.bufferSubData(gl.ARRAY_BUFFER, 0, models[type].positions);
   gl.bufferSubData(gl.ARRAY_BUFFER, normalOffset, cubeNormal);
   gl.bufferSubData(gl.ARRAY_BUFFER, colorOffset, models[type].colors);
@@ -266,7 +232,11 @@ function initWireShaders() {
  */
 function calculateMatrix() {
   let rotate = getRotationMatrix(xRotation, yRotation, zRotation);
-  let translate = getTranslationMatrix(xTranslation, yTranslation, zTranslation);
+  let translate = getTranslationMatrix(
+    xTranslation,
+    yTranslation,
+    zTranslation
+  );
   let scale = getScaleMatrix(xScale, yScale, zScale);
   matrix = multiplyMatrix(rotate, translate);
   matrix = multiplyMatrix(matrix, scale);
@@ -277,6 +247,8 @@ function calculateMatrix() {
  */
 function calculateCameraProjection(near: number, far: number) {
   gl = gl as WebGLRenderingContext;
+
+  // Arcball camera calculation
   let cameraPosition = [0, 0, cameraDistance];
   const targetPosition = [0, 0, 0];
   const up = [0, 1, 0];
@@ -296,8 +268,9 @@ function calculateCameraProjection(near: number, far: number) {
   );
 
   cameraMatrix = getLookAt(cameraPosition, targetPosition, up);
+
+  // Switching between projection modes
   if (projMode == 1) {
-    // TODO : Change projection
     projectionMatrix = multiplyMatrix(
       getInverse(cameraMatrix),
       getPerspectiveMatrix(60, 1, near, far)
@@ -399,14 +372,14 @@ function draw() {
   gl.uniform3fv(ac, new Float32Array(models[type].material.ambient));
   gl.uniform3fv(dc, new Float32Array(models[type].material.diffuse));
   gl.uniform3fv(sc, new Float32Array(models[type].material.specular));
-  gl.uniform3fv(lightPos, new Float32Array([0, 0, 2]));
+  gl.uniform3fv(lightPos, new Float32Array([0, 0, 0.5]));
 
   // Bind and draw triangles
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, elementVbo);
   gl.drawElements(gl.TRIANGLES, numElements, gl.UNSIGNED_SHORT, 0);
 
   // Draw wireframe
-  // drawWire();
+  drawWire();
 }
 
 /**
