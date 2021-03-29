@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Grafkom Hollow</title>
+  </head>
+  <body class="bg-gray-900 min-h-screen font-mono">
+    <div class="container mx-auto p-6">
+      <!-- HEADERS -->
+      <div class="mb-4 text-center">
+        <h1 class="font-bold text-pink-400 text-6xl">Hollow Canvas</h1>
+      </div>
+
+      <!-- TOOLBOX, TRANSFORMATIONS -->
+      <div class="flex justify-center text-pink-400">
+        <div>
+          <div class="flex items-center space-x-2 p-1">
+            <label for="near">near</label>
+            <input id="near" type="range" min="1" max="50" value="1" />
+          </div>
+          <div class="flex items-center space-x-2 p-1">
+            <label for="x-rotation">x-rotation</label>
+            <input
+              id="x-rotation"
+              type="range"
+              min="-180"
+              max="180"
+              value="0"
+            />
+          </div>
+          <div class="flex items-center space-x-2 p-1">
+            <label for="y-rotation">y-rotation</label>
+            <input id="y-rotation" type="range" min="-90" max="90" value="0" />
+          </div>
+          <div class="flex items-center space-x-2 p-1">
+            <label for="z-rotation">z-rotation</label>
+            <input
+              id="z-rotation"
+              type="range"
+              min="-180"
+              max="180"
+              value="0"
+            />
+          </div>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2 p-1">
+            <label for="far">far</label>
+            <input id="far" type="range" min="1" max="50" value="50" />
+          </div>
+          <div class="flex items-center space-x-2 p-1">
+            <label for="x-scale">x-scale</label>
+            <input
+              id="x-scale"
+              type="range"
+              min="0.2"
+              max="2"
+              step="0.1"
+              value="1"
+            />
+          </div>
+          <div class="flex items-center space-x-2 p-1">
+            <label for="y-scale">y-scale</label>
+            <input
+              id="y-scale"
+              type="range"
+              min="0.2"
+              max="2"
+              step="0.1"
+              value="1"
+            />
+          </div>
+          <div class="flex items-center space-x-2 p-1">
+            <label for="z-scale">z-scale</label>
+            <input
+              id="z-scale"
+              type="range"
+              min="0.2"
+              max="2"
+              step="0.1"
+              value="1"
+            />
+          </div>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2 p-1">
+            <label for="x-translation">x-translation</label>
+            <input
+              id="x-translation"
+              type="range"
+              min="-10"
+              max="10"
+              step="0.1"
+              value="0"
+            />
+          </div>
+          <div class="flex items-center space-x-2 p-1">
+            <label for="y-translation">y-translation</label>
+            <input
+              id="y-translation"
+              type="range"
+              min="-10"
+              max="10"
+              step="0.1"
+              value="0"
+            />
+          </div>
+          <div class="flex items-center space-x-2 p-1">
+            <label for="z-translation">z-translation</label>
+            <input
+              id="z-translation"
+              type="range"
+              min="-10"
+              max="10"
+              step="0.1"
+              value="0"
+            />
+          </div>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2 p-1">
+            <label for="x-camera-rotation">x-cam-rot</label>
+            <input
+              id="x-camera-rotation"
+              type="range"
+              min="-90"
+              max="90"
+              step="1"
+              value="0"
+            />
+          </div>
+          <div class="flex items-center space-x-2 p-1">
+            <label for="y-camera-rotation">y-cam-rot</label>
+            <input
+              id="y-camera-rotation"
+              type="range"
+              min="-180"
+              max="180"
+              step="1"
+              value="0"
+            />
+          </div>
+          <div class="flex items-center space-x-2 p-1">
+            <label for="camera-distance">radius-cam</label>
+            <input
+              id="camera-distance"
+              type="range"
+              min="0"
+              max="10"
+              step="0.1"
+              value="2"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- TODO : CHANGE MODEL AND PERSPECTIVE-->
+      <div class="flex justify-center p-2">
+        <div class="flex space-x-1 mx-2">
+          <button class="rounded py-1 px-2 text-white bg-pink-500" id="model1">
+            Model 1
+          </button>
+          <button class="rounded py-1 px-2 text-white bg-pink-500" id="model2">
+            Model 2
+          </button>
+          <button class="rounded py-1 px-2 text-white bg-pink-500" id="model3">
+            Model 3
+          </button>
+        </div>
+        <div class="flex space-x-1 mx-2">
+          <button
+            class="rounded py-1 px-2 text-white bg-pink-500"
+            id="perspective"
+          >
+            Perspective
+          </button>
+          <button class="rounded py-1 px-2 text-white bg-pink-500" id="oblique">
+            Oblique
+          </button>
+          <button
+            class="rounded py-1 px-2 text-white bg-pink-500"
+            id="orthographic"
+          >
+            Orthographic
+          </button>
+        </div>
+        <div class="flex space-x-1 mx-2">
+          <button
+            class="rounded py-1 px-2 text-white bg-pink-500"
+            id="toggle-shading"
+          >
+            Toggle Shading
+          </button>
+        </div>
+        <div class="flex space-x-1 mx-2">
+          <button class="rounded py-1 px-2 text-white bg-pink-500" id="reset">
+            Reset
+          </button>
+        </div>
+      </div>
+
+      <!-- CANVAS -->
+      <div class="flex justify-center w-full p-6">
+        <canvas
+          id="webgl-canvas"
+          class="shadow-lg bg-gray-800 rounded-xl"
+        ></canvas>
+      </div>
+
+      <div class="flex flex-col justify-center text-center p-6 text-pink-500">
+        <div class="font-bold mb-1">Help:</div>
+        <div class="mb-1">
+          Change slider value to tweak parameters relating to camera and object
+          orientation! Parameters name should be self-explanatory.
+        </div>
+        <div class="mb-1">
+          Buttons can be used for changing models, camera projection mode,
+          toggling shading, and resetting to default view.
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
