@@ -14,7 +14,6 @@ interface Model {
   colors: Float32Array;
   indices: Uint16Array;
   material: Material;
-  children?: Model[];
 }
 
 interface Material {
@@ -22,4 +21,11 @@ interface Material {
   diffuse: number[];
   specular: number[];
   shininess: number;
+}
+
+interface ModelNode {
+  transform: number[];
+  render: Model;
+  sibling: ModelNode | null;
+  child: ModelNode | null;
 }

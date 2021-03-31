@@ -8,9 +8,9 @@ import {
   getOrthographicMatrix,
   getInverse,
   getTranspose,
-  getIdentityMatrix,
   getLookAt,
   getObliqueMatrix,
+  getIdentityMatrix,
 } from "./utils/Matrix4";
 import { subtractVector, addVector, transformVector } from "./utils/Vector3";
 
@@ -20,27 +20,34 @@ import WireVertexShader from "./shaders/WireVertexShader.glsl";
 import WireFragmentShader from "./shaders/WireFragmentShader.glsl";
 import { steve } from "./models/steve";
 
-const models: Model[] = [steve];
+const models: ModelNode[] = [steve];
 
+// WebGL objects
 let gl: WebGLRenderingContext | null = null;
 let programObject: WebGLProgram | null = null;
 let wireProgramObject: WebGLProgram | null = null;
 
+// WebGL buffers
 let vbo: WebGLBuffer | null = null;
 let wireVbo: WebGLBuffer | null = null;
 let elementVbo: WebGLBuffer | null = null;
 
+// WebGL buffer offsets
 let normalOffset: number = 0;
 let colorOffset: number = 0;
+
+// WebGL element count
 let numElements: number = 0;
 let wireNumElements: number = 0;
 
+// WebGL mat4 uniform location
 let matrixLocation: WebGLUniformLocation | null = null;
 let wireMatrixLocation: WebGLUniformLocation | null = null;
 let projectionMatrixLocation: WebGLUniformLocation | null = null;
 let wireProjectionMatrixLocation: WebGLUniformLocation | null = null;
 let normalMatrixLocation: WebGLUniformLocation | null = null;
 
+// WebGL constant uniform locations
 let mode: WebGLUniformLocation | null = null;
 let ka: WebGLUniformLocation | null = null;
 let kd: WebGLUniformLocation | null = null;
@@ -52,6 +59,7 @@ let sc: WebGLUniformLocation | null = null;
 let lightPos: WebGLUniformLocation | null = null;
 let shadingModeLocation: WebGLUniformLocation | null = null;
 
+// Variables
 let wireIndices = null;
 let matrix = Array(16).fill(0);
 let type: 0 | 1 | 2 = 0;
@@ -83,39 +91,53 @@ let xTranslation = 0;
 let yTranslation = 0;
 let zTranslation = 0;
 
-function main() {
-  const canvas = document.getElementById("webgl-canvas") as HTMLCanvasElement;
-
-  const ratio = window.devicePixelRatio ? window.devicePixelRatio : 1;
-  canvas.width = 1200 * ratio;
-  canvas.height = 1200 * ratio;
-
-  gl = canvas.getContext("webgl");
-  if (!gl) alert("Your browser/machine does not support WebGL!");
-  init();
-}
-
-function init() {
+/**
+ * Function to initialize canvas.
+ */
+const initCanvas = () => {
   gl = gl as WebGLRenderingContext;
-
-  // Clear canvas
   gl.enable(gl.DEPTH_TEST);
   gl.clearColor(0.0, 0.0, 0.0, 0.0);
+};
 
-  initModel();
-  initShaders();
-  initWireShaders();
-  initEvents();
-  calculateMatrix();
+/**
+ * Reset canvas
+ */
+const resetCanvas = () => {
+  gl = gl as WebGLRenderingContext;
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+  gl.enable(gl.DEPTH_TEST);
+};
+
+/**
+ * Draw scene
+ */
+const drawScene = () => {
   calculateCameraProjection(near, far);
+  drawObject(getIdentityMatrix(), models[type]);
+};
 
-  draw();
+/**
+ * Draw a passed object.
+ * @param model The model drawn to scene
+ */
+function drawObject(parentTransformation: number[], model: ModelNode) {
+  const currentTransformation = multiplyMatrix(
+    parentTransformation,
+    model.transform
+  );
+  if (model.child) drawObject(currentTransformation, model.child);
+  if (model.sibling) drawObject(parentTransformation, model.sibling);
+
+  // calculateMatrix(model);
+  matrix = currentTransformation;
+  draw(model.render);
 }
 
 /**
  * Insert object model to WebGL buffers.
  */
-function initModel() {
+const initModel = (model: Model) => {
   gl = gl as WebGLRenderingContext;
 
   vbo = gl.createBuffer() as WebGLBuffer;
@@ -125,37 +147,37 @@ function initModel() {
 
   gl.bufferData(
     gl.ARRAY_BUFFER,
-    models[type].positions.byteLength +
+    model.positions.byteLength +
       cubeNormal.byteLength +
-      models[type].colors.byteLength,
+      model.colors.byteLength,
     gl.STATIC_DRAW
   );
-  normalOffset = models[type].positions.byteLength;
+  normalOffset = model.positions.byteLength;
   colorOffset = normalOffset + cubeNormal.byteLength;
 
   // Store buffer data for position, normal, and colors
-  gl.bufferSubData(gl.ARRAY_BUFFER, 0, models[type].positions);
+  gl.bufferSubData(gl.ARRAY_BUFFER, 0, model.positions);
   gl.bufferSubData(gl.ARRAY_BUFFER, normalOffset, cubeNormal);
-  gl.bufferSubData(gl.ARRAY_BUFFER, colorOffset, models[type].colors);
+  gl.bufferSubData(gl.ARRAY_BUFFER, colorOffset, model.colors);
 
   // Store element triangle definition
   elementVbo = gl.createBuffer();
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, elementVbo);
-  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, models[type].indices, gl.STATIC_DRAW);
-  numElements = models[type].indices.length;
+  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, model.indices, gl.STATIC_DRAW);
+  numElements = model.indices.length;
 
   // Store wire definition
-  wireIndices = createWireIndices(models[type].indices);
-  wireVbo = gl.createBuffer();
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, wireVbo);
-  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, wireIndices, gl.STATIC_DRAW);
-  wireNumElements = wireIndices.length;
-}
+  // wireIndices = createWireIndices(model.indices);
+  // wireVbo = gl.createBuffer();
+  // gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, wireVbo);
+  // gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, wireIndices, gl.STATIC_DRAW);
+  // wireNumElements = wireIndices.length;
+};
 
 /**
  * Initialize body shaders.
  */
-function initShaders() {
+const initShaders = () => {
   gl = gl as WebGLRenderingContext;
 
   // Initialize body vertex shader
@@ -195,42 +217,43 @@ function initShaders() {
   sc = gl.getUniformLocation(programObject, "specularColor");
   lightPos = gl.getUniformLocation(programObject, "lightPos");
   normalMatrixLocation = gl.getUniformLocation(programObject, "normalMat");
-}
+};
 
 /**
  * Initialize wire shaders.
  */
-function initWireShaders() {
-  gl = gl as WebGLRenderingContext;
+// const initWireShaders = () => {
+//   gl = gl as WebGLRenderingContext;
 
-  // Initialize wire vertex shaders
-  const wireVertexShader = gl.createShader(gl.VERTEX_SHADER) as WebGLShader;
-  gl.shaderSource(wireVertexShader, WireVertexShader);
-  gl.compileShader(wireVertexShader);
+//   // Initialize wire vertex shaders
+//   const wireVertexShader = gl.createShader(gl.VERTEX_SHADER) as WebGLShader;
+//   gl.shaderSource(wireVertexShader, WireVertexShader);
+//   gl.compileShader(wireVertexShader);
 
-  // Initialize wire fragment shaders
-  const wireFragmentShader = gl.createShader(gl.FRAGMENT_SHADER) as WebGLShader;
-  gl.shaderSource(wireFragmentShader, WireFragmentShader);
-  gl.compileShader(wireFragmentShader);
+//   // Initialize wire fragment shaders
+//   const wireFragmentShader = gl.createShader(gl.FRAGMENT_SHADER) as WebGLShader;
+//   gl.shaderSource(wireFragmentShader, WireFragmentShader);
+//   gl.compileShader(wireFragmentShader);
 
-  // Initialize wire shader program
-  wireProgramObject = gl.createProgram() as WebGLProgram;
-  gl.attachShader(wireProgramObject, wireVertexShader);
-  gl.attachShader(wireProgramObject, wireFragmentShader);
+//   // Initialize wire shader program
+//   wireProgramObject = gl.createProgram() as WebGLProgram;
+//   gl.attachShader(wireProgramObject, wireVertexShader);
+//   gl.attachShader(wireProgramObject, wireFragmentShader);
 
-  // Link shader variables
-  gl.bindAttribLocation(wireProgramObject, 0, "a_position");
-  gl.linkProgram(wireProgramObject);
-  wireMatrixLocation = gl.getUniformLocation(wireProgramObject, "u_matrix");
-  wireProjectionMatrixLocation = gl.getUniformLocation(
-    wireProgramObject,
-    "u_proj_matrix"
-  );
-}
+//   // Link shader variables
+//   gl.bindAttribLocation(wireProgramObject, 0, "a_position");
+//   gl.linkProgram(wireProgramObject);
+//   wireMatrixLocation = gl.getUniformLocation(wireProgramObject, "u_matrix");
+//   wireProjectionMatrixLocation = gl.getUniformLocation(
+//     wireProgramObject,
+//     "u_proj_matrix"
+//   );
+// };
+
 /**
  * Function to calculate current transformation matrix.
  */
-function calculateMatrix() {
+const calculateMatrix = (model: ModelNode) => {
   let rotate = getRotationMatrix(xRotation, yRotation, zRotation);
   let translate = getTranslationMatrix(
     xTranslation,
@@ -240,12 +263,15 @@ function calculateMatrix() {
   let scale = getScaleMatrix(xScale, yScale, zScale);
   matrix = multiplyMatrix(rotate, translate);
   matrix = multiplyMatrix(matrix, scale);
-}
+
+  // Transformation from model
+  matrix = multiplyMatrix(matrix, model.transform);
+};
 
 /**
  * Function to calculate the projection matrix. Arcball camera pointed at (0,0,0).
  */
-function calculateCameraProjection(near: number, far: number) {
+const calculateCameraProjection = (near: number, far: number) => {
   gl = gl as WebGLRenderingContext;
 
   // Arcball camera calculation
@@ -281,7 +307,7 @@ function calculateCameraProjection(near: number, far: number) {
       getOrthographicMatrix(-2.0, 2.0, -2.0, 2.0, 0.1, 100)
     );
   } else if (projMode == 3) {
-    var tempOrthoMatrix = multiplyMatrix(
+    const tempOrthoMatrix = multiplyMatrix(
       getInverse(cameraMatrix),
       getOrthographicMatrix(-2.0, 2.0, -2.0, 2.0, 0.1, 100)
     );
@@ -290,55 +316,50 @@ function calculateCameraProjection(near: number, far: number) {
       tempOrthoMatrix
     );
   }
-}
+};
 
 /**
  * Function to calculate normals.
  */
-function calculateNormal() {
-  var vertNormal = Array(models[type].positions.length).fill(0);
-  for (var i = 0; i < models[type].indices.length / 3; i = i + 3) {
-    var p1 = [];
-    var p2 = [];
-    var p3 = [];
-    for (var j = 0; j < 3; j++) {
-      p1.push(models[type].positions[models[type].indices[i] * 3 + j]);
-      p2.push(models[type].positions[models[type].indices[i + 1] * 3 + j]);
-      p3.push(models[type].positions[models[type].indices[i + 2] * 3 + j]);
+const calculateNormal = (model: Model) => {
+  const vertNormal = Array(model.positions.length).fill(0);
+  for (let i = 0; i < model.indices.length / 3; i = i + 3) {
+    const p1 = [];
+    const p2 = [];
+    const p3 = [];
+    for (let j = 0; j < 3; j++) {
+      p1.push(model.positions[model.indices[i] * 3 + j]);
+      p2.push(model.positions[model.indices[i + 1] * 3 + j]);
+      p3.push(model.positions[model.indices[i + 2] * 3 + j]);
     }
-    var u = [];
-    var v = [];
-    for (var j = 0; j < 3; j++) {
+    const u = [];
+    const v = [];
+    for (let j = 0; j < 3; j++) {
       u.push(p2[j] - p1[j]);
       v.push(p3[j] - p1[j]);
     }
-    var nx = u[1] * v[2] - u[2] * v[1];
-    var ny = u[2] * v[0] - u[0] * v[2];
-    var nz = u[0] * v[1] - u[1] * v[0];
+    const nx = u[1] * v[2] - u[2] * v[1];
+    const ny = u[2] * v[0] - u[0] * v[2];
+    const nz = u[0] * v[1] - u[1] * v[0];
 
-    var normal = [nx, ny, nz];
+    const normal = [nx, ny, nz];
 
-    for (var j = 0; j < 3; j++) {
-      vertNormal[models[type].indices[i] * 3 + j] += normal[j];
-      vertNormal[models[type].indices[i + 1] * 3 + j] += normal[j];
-      vertNormal[models[type].indices[i + 2] * 3 + j] += normal[j];
+    for (let j = 0; j < 3; j++) {
+      vertNormal[model.indices[i] * 3 + j] += normal[j];
+      vertNormal[model.indices[i + 1] * 3 + j] += normal[j];
+      vertNormal[model.indices[i + 2] * 3 + j] += normal[j];
     }
   }
   cubeNormal = new Float32Array(vertNormal);
-}
+};
 
 /**
- * Draw objects
+ * Draw model object.
  */
-function draw() {
-  calculateNormal();
-
+const draw = (model: Model) => {
+  initModel(model);
+  calculateNormal(model);
   gl = gl as WebGLRenderingContext;
-
-  // Reset canvas
-  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-  // gl.enable(gl.CULL_FACE);
-  gl.enable(gl.DEPTH_TEST);
 
   // Use WebGL Program
   gl.useProgram(programObject);
@@ -367,58 +388,55 @@ function draw() {
   gl.uniform1f(ka, 1);
   gl.uniform1f(kd, 1);
   gl.uniform1f(ks, 1);
+  gl.uniform1f(shineVal, model.material.shininess);
 
-  gl.uniform1f(shineVal, models[type].material.shininess);
-  gl.uniform3fv(ac, new Float32Array(models[type].material.ambient));
-  gl.uniform3fv(dc, new Float32Array(models[type].material.diffuse));
-  gl.uniform3fv(sc, new Float32Array(models[type].material.specular));
+  gl.uniform3fv(ac, new Float32Array(model.material.ambient));
+  gl.uniform3fv(dc, new Float32Array(model.material.diffuse));
+  gl.uniform3fv(sc, new Float32Array(model.material.specular));
   gl.uniform3fv(lightPos, new Float32Array([0, 0, 0.5]));
 
   // Bind and draw triangles
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, elementVbo);
   gl.drawElements(gl.TRIANGLES, numElements, gl.UNSIGNED_SHORT, 0);
-
-  // Draw wireframe
-  drawWire();
-}
+};
 
 /**
  * Draw wireframe
  */
-function drawWire() {
-  gl = gl as WebGLRenderingContext;
+// function drawWire() {
+//   gl = gl as WebGLRenderingContext;
 
-  // Use WebGL Program
-  gl.useProgram(wireProgramObject);
+//   // Use WebGL Program
+//   gl.useProgram(wireProgramObject);
 
-  // Bind transformation matrix
-  gl.uniformMatrix4fv(wireMatrixLocation, false, matrix);
-  gl.uniformMatrix4fv(wireProjectionMatrixLocation, false, projectionMatrix);
+//   // Bind transformation matrix
+//   gl.uniformMatrix4fv(wireMatrixLocation, false, matrix);
+//   gl.uniformMatrix4fv(wireProjectionMatrixLocation, false, projectionMatrix);
 
-  // Retrieve buffers
-  gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
-  gl.enableVertexAttribArray(0);
+//   // Retrieve buffers
+//   gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
+//   gl.enableVertexAttribArray(0);
 
-  // Bind and draw wireframes
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, wireVbo);
-  gl.drawElements(gl.LINES, wireNumElements, gl.UNSIGNED_SHORT, 0);
-}
+//   // Bind and draw wireframes
+//   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, wireVbo);
+//   gl.drawElements(gl.LINES, wireNumElements, gl.UNSIGNED_SHORT, 0);
+// }
 
-function createWireIndices(triangleIndices: Uint16Array) {
-  const wireIndices = new Uint16Array(triangleIndices.length * 2);
-  let j = 0;
-  for (let i = 0; i < triangleIndices.length; i += 3) {
-    wireIndices[j++] = triangleIndices[i];
-    wireIndices[j++] = triangleIndices[i + 1];
+// function createWireIndices(triangleIndices: Uint16Array) {
+//   const wireIndices = new Uint16Array(triangleIndices.length * 2);
+//   let j = 0;
+//   for (let i = 0; i < triangleIndices.length; i += 3) {
+//     wireIndices[j++] = triangleIndices[i];
+//     wireIndices[j++] = triangleIndices[i + 1];
 
-    wireIndices[j++] = triangleIndices[i + 1];
-    wireIndices[j++] = triangleIndices[i + 2];
+//     wireIndices[j++] = triangleIndices[i + 1];
+//     wireIndices[j++] = triangleIndices[i + 2];
 
-    wireIndices[j++] = triangleIndices[i + 2];
-    wireIndices[j++] = triangleIndices[i];
-  }
-  return wireIndices;
-}
+//     wireIndices[j++] = triangleIndices[i + 2];
+//     wireIndices[j++] = triangleIndices[i];
+//   }
+//   return wireIndices;
+// }
 
 function initEvents() {
   // Set initial value
@@ -509,21 +527,18 @@ function initEvents() {
       (document.getElementById("far") as HTMLInputElement).valueAsNumber = 50;
       calculateMatrix();
       calculateCameraProjection(near, far);
-      draw();
     }
   );
   (document.getElementById(
     "toggle-shading"
   ) as HTMLInputElement).addEventListener("click", (ev) => {
     shadingMode = shadingMode == 0 ? 1 : 0;
-    draw();
   });
   (document.getElementById("model1") as HTMLInputElement).addEventListener(
     "click",
     (ev) => {
       type = 1;
       initModel();
-      draw();
     }
   );
   (document.getElementById("model2") as HTMLInputElement).addEventListener(
@@ -531,7 +546,6 @@ function initEvents() {
     (ev) => {
       type = 2;
       initModel();
-      draw();
     }
   );
   (document.getElementById("model3") as HTMLInputElement).addEventListener(
@@ -539,7 +553,6 @@ function initEvents() {
     (ev) => {
       type = 3;
       initModel();
-      draw();
     }
   );
   (document.getElementById("perspective") as HTMLInputElement).addEventListener(
@@ -547,7 +560,6 @@ function initEvents() {
     (ev) => {
       projMode = 1;
       calculateCameraProjection(near, far);
-      draw();
     }
   );
   (document.getElementById(
@@ -555,14 +567,12 @@ function initEvents() {
   ) as HTMLInputElement).addEventListener("click", (ev) => {
     projMode = 2;
     calculateCameraProjection(near, far);
-    draw();
   });
   (document.getElementById("oblique") as HTMLInputElement).addEventListener(
     "click",
     (ev) => {
       projMode = 3;
       calculateCameraProjection(near, far);
-      draw();
     }
   );
   (document.getElementById("near") as HTMLInputElement).addEventListener(
@@ -571,7 +581,6 @@ function initEvents() {
       near = (document.getElementById("near") as HTMLInputElement)
         .valueAsNumber;
       calculateCameraProjection(near, far);
-      draw();
     }
   );
   (document.getElementById("far") as HTMLInputElement).addEventListener(
@@ -579,7 +588,6 @@ function initEvents() {
     (ev) => {
       far = (document.getElementById("far") as HTMLInputElement).valueAsNumber;
       calculateCameraProjection(near, far);
-      draw();
     }
   );
   (document.getElementById("x-rotation") as HTMLInputElement).addEventListener(
@@ -588,7 +596,6 @@ function initEvents() {
       xRotation = (document.getElementById("x-rotation") as HTMLInputElement)
         .valueAsNumber;
       calculateMatrix();
-      draw();
     }
   );
   (document.getElementById("y-rotation") as HTMLInputElement).addEventListener(
@@ -597,7 +604,6 @@ function initEvents() {
       yRotation = (document.getElementById("y-rotation") as HTMLInputElement)
         .valueAsNumber;
       calculateMatrix();
-      draw();
     }
   );
   (document.getElementById("z-rotation") as HTMLInputElement).addEventListener(
@@ -606,7 +612,6 @@ function initEvents() {
       zRotation = (document.getElementById("z-rotation") as HTMLInputElement)
         .valueAsNumber;
       calculateMatrix();
-      draw();
     }
   );
   (document.getElementById("x-scale") as HTMLInputElement).addEventListener(
@@ -615,7 +620,6 @@ function initEvents() {
       xScale = (document.getElementById("x-scale") as HTMLInputElement)
         .valueAsNumber;
       calculateMatrix();
-      draw();
     }
   );
   (document.getElementById("y-scale") as HTMLInputElement).addEventListener(
@@ -624,7 +628,6 @@ function initEvents() {
       yScale = (document.getElementById("y-scale") as HTMLInputElement)
         .valueAsNumber;
       calculateMatrix();
-      draw();
     }
   );
   (document.getElementById("z-scale") as HTMLInputElement).addEventListener(
@@ -633,7 +636,6 @@ function initEvents() {
       zScale = (document.getElementById("z-scale") as HTMLInputElement)
         .valueAsNumber;
       calculateMatrix();
-      draw();
     }
   );
   (document.getElementById(
@@ -643,7 +645,6 @@ function initEvents() {
       "x-translation"
     ) as HTMLInputElement).valueAsNumber;
     calculateMatrix();
-    draw();
   });
   (document.getElementById(
     "y-translation"
@@ -652,7 +653,6 @@ function initEvents() {
       "y-translation"
     ) as HTMLInputElement).valueAsNumber;
     calculateMatrix();
-    draw();
   });
   (document.getElementById(
     "z-translation"
@@ -661,7 +661,6 @@ function initEvents() {
       "z-translation"
     ) as HTMLInputElement).valueAsNumber;
     calculateMatrix();
-    draw();
   });
   (document.getElementById(
     "x-camera-rotation"
@@ -670,7 +669,6 @@ function initEvents() {
       "x-camera-rotation"
     ) as HTMLInputElement).valueAsNumber;
     calculateCameraProjection(near, far, projMode);
-    draw();
   });
   (document.getElementById(
     "y-camera-rotation"
@@ -679,7 +677,6 @@ function initEvents() {
       "y-camera-rotation"
     ) as HTMLInputElement).valueAsNumber;
     calculateCameraProjection(near, far, projMode);
-    draw();
   });
   (document.getElementById(
     "camera-distance"
@@ -688,8 +685,41 @@ function initEvents() {
       "camera-distance"
     ) as HTMLInputElement).valueAsNumber;
     calculateCameraProjection(near, far, projMode);
-    draw();
   });
 }
 
-main();
+// Get Canvas
+const canvas = document.getElementById("webgl-canvas") as HTMLCanvasElement;
+
+const ratio = window.devicePixelRatio ? window.devicePixelRatio : 1;
+canvas.width = 1200 * ratio;
+canvas.height = 1200 * ratio;
+
+gl = canvas.getContext("webgl");
+if (!gl) alert("Your browser/machine does not support WebGL!");
+
+// Initialize stuff
+initCanvas();
+initShaders();
+// initWireShaders();
+initEvents();
+
+resetCanvas();
+
+let currentFrame = 0;
+const frameFunction: FrameRequestCallback = () => {
+  currentFrame++;
+  // TEST: rotate arms xD
+  models[type].child!.transform = multiplyMatrix(
+    getRotationMatrix(-currentFrame * 0.001, 0, 0),
+    models[type].child!.transform
+  );
+  models[type].child!.sibling!.transform = multiplyMatrix(
+    getRotationMatrix(currentFrame * 0.001, 0, 0),
+    models[type].child!.sibling!.transform
+  );
+
+  drawScene();
+  window.requestAnimationFrame(frameFunction);
+};
+window.requestAnimationFrame(frameFunction);
