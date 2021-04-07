@@ -10,9 +10,8 @@ declare module "*.glsl" {
 /* CUSTOM: ADD YOUR OWN HERE */
 
 interface Model {
-  positions: Float32Array;
-  colors: Float32Array;
-  indices: Uint16Array;
+  vertices: Float32Array;
+  uv: Float32Array;
   material: Material;
 }
 

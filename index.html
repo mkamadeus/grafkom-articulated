@@ -18,102 +18,8 @@
             <input id="near" type="range" min="1" max="50" value="1" />
           </div>
           <div class="flex items-center space-x-2 p-1">
-            <label for="x-rotation">x-rotation</label>
-            <input
-              id="x-rotation"
-              type="range"
-              min="-180"
-              max="180"
-              value="0"
-            />
-          </div>
-          <div class="flex items-center space-x-2 p-1">
-            <label for="y-rotation">y-rotation</label>
-            <input id="y-rotation" type="range" min="-90" max="90" value="0" />
-          </div>
-          <div class="flex items-center space-x-2 p-1">
-            <label for="z-rotation">z-rotation</label>
-            <input
-              id="z-rotation"
-              type="range"
-              min="-180"
-              max="180"
-              value="0"
-            />
-          </div>
-        </div>
-        <div>
-          <div class="flex items-center space-x-2 p-1">
             <label for="far">far</label>
             <input id="far" type="range" min="1" max="50" value="50" />
-          </div>
-          <div class="flex items-center space-x-2 p-1">
-            <label for="x-scale">x-scale</label>
-            <input
-              id="x-scale"
-              type="range"
-              min="0.2"
-              max="2"
-              step="0.1"
-              value="1"
-            />
-          </div>
-          <div class="flex items-center space-x-2 p-1">
-            <label for="y-scale">y-scale</label>
-            <input
-              id="y-scale"
-              type="range"
-              min="0.2"
-              max="2"
-              step="0.1"
-              value="1"
-            />
-          </div>
-          <div class="flex items-center space-x-2 p-1">
-            <label for="z-scale">z-scale</label>
-            <input
-              id="z-scale"
-              type="range"
-              min="0.2"
-              max="2"
-              step="0.1"
-              value="1"
-            />
-          </div>
-        </div>
-        <div>
-          <div class="flex items-center space-x-2 p-1">
-            <label for="x-translation">x-translation</label>
-            <input
-              id="x-translation"
-              type="range"
-              min="-10"
-              max="10"
-              step="0.1"
-              value="0"
-            />
-          </div>
-          <div class="flex items-center space-x-2 p-1">
-            <label for="y-translation">y-translation</label>
-            <input
-              id="y-translation"
-              type="range"
-              min="-10"
-              max="10"
-              step="0.1"
-              value="0"
-            />
-          </div>
-          <div class="flex items-center space-x-2 p-1">
-            <label for="z-translation">z-translation</label>
-            <input
-              id="z-translation"
-              type="range"
-              min="-10"
-              max="10"
-              step="0.1"
-              value="0"
-            />
           </div>
         </div>
         <div>
@@ -152,8 +58,6 @@
           </div>
         </div>
       </div>
-
-      <!-- TODO : CHANGE MODEL AND PERSPECTIVE-->
       <div class="flex justify-center p-2">
         <div class="flex space-x-1 mx-2">
           <button class="rounded py-1 px-2 text-white bg-pink-500" id="model1">
@@ -203,6 +107,7 @@
         <canvas
           id="webgl-canvas"
           class="shadow-lg bg-gray-800 rounded-xl"
+          style="image-rendering: pixelated"
         ></canvas>
       </div>
 
