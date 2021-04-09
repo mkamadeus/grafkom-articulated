@@ -16,11 +16,12 @@ import { subtractVector, addVector, transformVector } from "./utils/Vector3";
 import BodyVertexShader from "./shaders/BodyVertexShader.glsl";
 import BodyFragmentShader from "./shaders/BodyFragmentShader.glsl";
 import { steve, steveTexture } from "./models/steve";
+import { sheep } from "./models/sheep";
 
-const models: ModelNode[] = [steve];
+const models: ModelNode[] = [steve,sheep];
 
 // WebGL objects
-let gl: WebGLRenderingContext | null = null;
+var gl: WebGLRenderingContext;
 let programObject: WebGLProgram | null = null;
 
 // WebGL buffers
@@ -41,12 +42,16 @@ let matrixLocation: WebGLUniformLocation | null = null;
 let projectionMatrixLocation: WebGLUniformLocation | null = null;
 let textureLocation: WebGLUniformLocation | null = null;
 
+let viewLocation : WebGLUniformLocation | null = null;
+let worldLocation : WebGLUniformLocation | null = null;
+let worldCameraPositionLocation : WebGLUniformLocation | null = null;
+
 // WebGL texture
 let texture: WebGLTexture | null = null;
 
 // Variables
 let matrix = Array(16).fill(0);
-let type: 0 | 1 | 2 = 0;
+let type: 0 | 1 | 2 = 1;
 let shadingMode = 1;
 let projMode = 1;
 let near = 1;
@@ -121,44 +126,121 @@ function drawObject(parentTransformation: number[], model: ModelNode) {
  * Insert object model to WebGL buffers.
  */
 const initModel = (model: Model) => {
-  gl = gl as WebGLRenderingContext;
 
-  vbo = gl.createBuffer() as WebGLBuffer;
+  if (type==0) {
+    gl = gl as WebGLRenderingContext;
 
-  // Store cube vertex positions and colors
-  // gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
-  // gl.bufferData(
-  //   gl.ARRAY_BUFFER,
-  //   model.positions.byteLength + model.colors.byteLength + model.uv.byteLength,
-  //   gl.STATIC_DRAW
-  // );
-  // colorOffset = model.positions.byteLength;
-  // gl.bufferSubData(gl.ARRAY_BUFFER, 0, model.positions);
-  // gl.bufferSubData(gl.ARRAY_BUFFER, colorOffset, model.colors);
+    vbo = gl.createBuffer() as WebGLBuffer;
 
-  // Store element triangle definition
-  elementVbo = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, elementVbo);
-  gl.bufferData(gl.ARRAY_BUFFER, model.vertices, gl.STATIC_DRAW);
-  // numElements = model.vertices.length;
+    // Store cube vertex positions and colors
+    // gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+    // gl.bufferData(
+    //   gl.ARRAY_BUFFER,
+    //   model.positions.byteLength + model.colors.byteLength + model.uv.byteLength,
+    //   gl.STATIC_DRAW
+    // );
+    // colorOffset = model.positions.byteLength;
+    // gl.bufferSubData(gl.ARRAY_BUFFER, 0, model.positions);
+    // gl.bufferSubData(gl.ARRAY_BUFFER, colorOffset, model.colors);
+  
+    // Store element triangle definition
+    elementVbo = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, elementVbo);
+    gl.bufferData(gl.ARRAY_BUFFER, model.vertices, gl.STATIC_DRAW);
+    // numElements = model.vertices.length;
+  
+    // Texture
+    texcoordBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, model.uv, gl.STATIC_DRAW);
+    // numTexcoord = model.uv.length;
 
-  // Texture
-  texcoordBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER, model.uv, gl.STATIC_DRAW);
-  // numTexcoord = model.uv.length;
+    // Create a texture.
+    texture = gl.createTexture();
+  
+    // Asynchronously load an image
+    const image = new Image();
+    image.src =
+      "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAQMAAAAlPW0iAAAABlBMVEX////MzMw46qqDAAAAEElEQVQImWNg+M+AFeEQBgB+vw/xfUUZkgAAAABJRU5ErkJggg==";
+    image.src = steveTexture;
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+    gl.generateMipmap(gl.TEXTURE_2D);
+  }
 
-  // Create a texture.
-  texture = gl.createTexture();
+  else if (type==1) {
+    gl = gl as WebGLRenderingContext;
+    vbo = gl.createBuffer() as WebGLBuffer;
+    elementVbo = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, elementVbo);
+    gl.bufferData(gl.ARRAY_BUFFER, model.vertices, gl.STATIC_DRAW);
+  
+    // Texture
+    texcoordBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, model.uv, gl.STATIC_DRAW);
 
-  // Asynchronously load an image
-  const image = new Image();
-  image.src =
-    "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAQMAAAAlPW0iAAAABlBMVEX////MzMw46qqDAAAAEElEQVQImWNg+M+AFeEQBgB+vw/xfUUZkgAAAABJRU5ErkJggg==";
-  image.src = steveTexture;
-  gl.bindTexture(gl.TEXTURE_2D, texture);
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-  gl.generateMipmap(gl.TEXTURE_2D);
+
+    var normalBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, model.normal, gl.STATIC_DRAW);
+    
+    var texture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
+    
+    const faceInfos = [
+      {
+        target: gl.TEXTURE_CUBE_MAP_POSITIVE_X, 
+        url: 'resources/images/computer-history-museum/pos-x.jpg',
+      },
+      {
+        target: gl.TEXTURE_CUBE_MAP_NEGATIVE_X, 
+        url: 'resources/images/computer-history-museum/neg-x.jpg',
+      },
+      {
+        target: gl.TEXTURE_CUBE_MAP_POSITIVE_Y, 
+        url: 'resources/images/computer-history-museum/pos-y.jpg',
+      },
+      {
+        target: gl.TEXTURE_CUBE_MAP_NEGATIVE_Y, 
+        url: 'resources/images/computer-history-museum/neg-y.jpg',
+      },
+      {
+        target: gl.TEXTURE_CUBE_MAP_POSITIVE_Z, 
+        url: 'resources/images/computer-history-museum/pos-z.jpg',
+      },
+      {
+        target: gl.TEXTURE_CUBE_MAP_NEGATIVE_Z, 
+        url: 'resources/images/computer-history-museum/neg-z.jpg',
+      },
+    ];
+    
+    faceInfos.forEach((faceInfo) => {
+      const {target, url} = faceInfo;
+    
+      // Upload the canvas to the cubemap face.
+      const level = 0;
+      const internalFormat = gl.RGBA;
+      const width = 512;
+      const height = 512;
+      const format = gl.RGBA;
+      const types = gl.UNSIGNED_BYTE;
+    
+      // setup each face so it's immediately renderable
+      gl.texImage2D(target, level, internalFormat, width, height, 0, format, types, null);
+    
+      // Asynchronously load an image
+      const image = new Image();
+      image.src = url;
+      image.addEventListener('load', function() {
+        gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
+        gl.texImage2D(target, level, internalFormat, format, types, image);
+        gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
+      });
+    });
+    gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
+    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+  }
 };
 
 /**
@@ -193,6 +275,10 @@ const initShaders = () => {
     "u_proj_matrix"
   );
   textureLocation = gl.getUniformLocation(programObject, "u_texture");
+  
+  viewLocation = gl.getUniformLocation(programObject, "u_view");
+  worldLocation = gl.getUniformLocation(programObject, "u_world");
+  worldCameraPositionLocation = gl.getUniformLocation(programObject, "u_worldCameraPosition");
 };
 
 /**
@@ -471,4 +557,8 @@ const frameFunction: FrameRequestCallback = () => {
   drawScene();
   window.requestAnimationFrame(frameFunction);
 };
+drawScene();
 window.requestAnimationFrame(frameFunction);
+
+
+
