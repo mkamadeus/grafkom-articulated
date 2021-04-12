@@ -28,3 +28,8 @@ interface ModelNode {
   sibling: ModelNode | null;
   child: ModelNode | null;
 }
+
+interface RobotModel {
+  vertices: Float32Array;
+  material: Material;
+}
