@@ -42,7 +42,7 @@ void main(void)
 
     vec3 light_pos = vec3(1, 2, 0);
     ts_light_pos = tbn * light_pos;
-    // Our camera is always at the origin
+    
     ts_view_pos = tbn * vec3(0, 0, 0);
     ts_frag_pos = tbn * ts_frag_pos;
  
