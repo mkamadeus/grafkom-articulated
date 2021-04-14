@@ -31,5 +31,8 @@ interface ModelNode {
 
 interface RobotModel {
   vertices: Float32Array;
+  tangents: Float32Array;
+  bitangents: Float32Array;
+  uv: Float32Array;
   material: Material;
 }

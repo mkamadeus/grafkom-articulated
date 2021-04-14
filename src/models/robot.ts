@@ -55,6 +55,89 @@ export const robotHead : RobotModel = {
         2/6, 3/6, 1.5/6,
         -2/6, 3/6, 1.5/6,
     ]),
+    tangents: new Float32Array([
+        // Front
+        2/6, 0, 0,
+        2/6, 0, 0,
+        2/6, 0, 0,
+
+        2/6, 0, 0,
+        2/6, 0, 0,
+        2/6, 0, 0,
+
+        // Back
+        -2/6, 0, 0,
+        -2/6, 0, 0,
+        -2/6, 0, 0,
+
+        -2/6, 0, 0,
+        -2/6, 0, 0,
+        -2/6, 0, 0,
+
+        // Left
+        0, 0, 1.5/6,
+        0, 0, 1.5/6,
+        0, 0, 1.5/6,
+
+        0, 0, 1.5/6,
+        0, 0, 1.5/6,
+        0, 0, 1.5/6,
+
+        // Right
+        0, 0, -1.5/6,
+        0, 0, -1.5/6,
+        0, 0, -1.5/6,
+
+        0, 0, -1.5/6,
+        0, 0, -1.5/6,
+        0, 0, -1.5/6,
+
+        // Top
+        0, 6/6, 0,
+        0, 6/6, 0,
+        0, 6/6, 0,
+
+        0, 6/6, 0,
+        0, 6/6, 0,
+        0, 6/6, 0,
+
+        // Bottom
+        0, 3/6, 0,
+        0, 3/6, 0,
+        0, 3/6, 0,
+
+        0, 3/6, 0,
+        0, 3/6, 0,
+        0, 3/6, 0,
+
+    ]),
+    bitangents: new Float32Array([
+        // Front
+
+        // Back
+
+        // Left
+
+        // Right
+
+        // Top
+
+        // Bottom
+
+    ]),
+    uv: new Float32Array([
+        // Front
+
+        // Back
+
+        // Left
+
+        // Right
+
+        // Top
+
+        // Bottom
+    ]),
     material: {
         ambient: [0.2, 0.0, 0.0],
         diffuse: [1.0, 1.0, 1.0],
@@ -118,6 +201,87 @@ export const robotNeck : RobotModel = {
         -0.5/6, 2/6, -0.5/6,
         0.5/6, 2/6, 0.5/6,
         -0.5/6, 2/6, 0.5/6,
+    ]),
+    tangents: new Float32Array([
+        // Front
+        0.5/6, 0, 0,
+        0.5/6, 0, 0,
+        0.5/6, 0, 0,
+
+        0.5/6, 0, 0,
+        0.5/6, 0, 0,
+        0.5/6, 0, 0,
+
+        // Back
+        -0.5/6, 0, 0,
+        -0.5/6, 0, 0,
+        -0.5/6, 0, 0,
+
+        -0.5/6, 0, 0,
+        -0.5/6, 0, 0,
+        -0.5/6, 0, 0,
+
+        // Left
+        0, 0, 0.5/6,
+        0, 0, 0.5/6,
+        0, 0, 0.5/6,
+
+        0, 0, 0.5/6,
+        0, 0, 0.5/6,
+        0, 0, 0.5/6,
+
+        // Right
+        0, 0, -0.5/6,
+        0, 0, -0.5/6,
+        0, 0, -0.5/6,
+
+        0, 0, -0.5/6,
+        0, 0, -0.5/6,
+        0, 0, -0.5/6,
+
+        // Top
+        0, 3/6, 0,
+        0, 3/6, 0,
+        0, 3/6, 0,
+
+        0, 3/6, 0,
+        0, 3/6, 0,
+        0, 3/6, 0,
+
+        // Bottom
+        0, 2/6, 0,
+        0, 2/6, 0,
+        0, 2/6, 0,
+
+        0, 2/6, 0,
+        0, 2/6, 0,
+        0, 2/6, 0,
+    ]),
+    bitangents: new Float32Array([
+        // Front
+
+        // Back
+
+        // Left
+
+        // Right
+
+        // Top
+
+        // Bottom
+    ]),
+    uv: new Float32Array([
+        // Front
+
+        // Back
+
+        // Left
+
+        // Right
+
+        // Top
+
+        // Bottom
     ]),
     material: {
         ambient: [0.2, 0.0, 0.0],
@@ -183,6 +347,87 @@ export const robotBody : RobotModel = {
         1/6, -6/6, 1/6,
         -1/6, -6/6, 1/6,
     ]),
+    tangents: new Float32Array([
+        // Front
+        1/6, 0, 0,
+        1/6, 0, 0,
+        1/6, 0, 0,
+
+        1/6, 0, 0,
+        1/6, 0, 0,
+        1/6, 0, 0,
+
+        // Back
+        -1/6, 0, 0,
+        -1/6, 0, 0,
+        -1/6, 0, 0,
+
+        -1/6, 0, 0,
+        -1/6, 0, 0,
+        -1/6, 0, 0,
+
+        // Left
+        0, 0, 1/6,
+        0, 0, 1/6,
+        0, 0, 1/6,
+
+        0, 0, 1/6,
+        0, 0, 1/6,
+        0, 0, 1/6,
+
+        // Right
+        0, 0, -1/6,
+        0, 0, -1/6,
+        0, 0, -1/6,
+
+        0, 0, -1/6,
+        0, 0, -1/6,
+        0, 0, -1/6,
+
+        // Top
+        0, 2/6, 0,
+        0, 2/6, 0,
+        0, 2/6, 0,
+
+        0, 2/6, 0,
+        0, 2/6, 0,
+        0, 2/6, 0,
+
+        // Bottom
+        0, -6/6, 0,
+        0, -6/6, 0,
+        0, -6/6, 0,
+
+        0, -6/6, 0,
+        0, -6/6, 0,
+        0, -6/6, 0,
+    ]),
+    bitangents: new Float32Array([
+        // Front
+
+        // Back
+
+        // Left
+
+        // Right
+
+        // Top
+
+        // Bottom
+    ]),
+    uv: new Float32Array([
+        // Front
+
+        // Back
+
+        // Left
+
+        // Right
+
+        // Top
+
+        // Bottom
+    ]),
     material: {
         ambient: [0.2, 0.0, 0.0],
         diffuse: [1.0, 1.0, 1.0],
@@ -247,6 +492,52 @@ export const robotLeftArm : RobotModel = {
         2/6, -3/6, 0.5/6,
         1/6, -3/6, 0.5/6,
     ]),
+    tangents: new Float32Array([
+        // Front
+        2/6, 1/6, 0.5/6,
+        1/6, 1/6, 0.5/6,
+        1/6, -3/6, 0.5/6,
+
+        2/6, 1/6, 0.5/6,
+        1/6, -3/6, 0.5/6,
+        2/6, -3/6, 0.5/6,
+
+        // Back
+
+        // Left
+
+        // Right
+
+        // Top
+
+        // Bottom
+    ]),
+    bitangents: new Float32Array([
+        // Front
+
+        // Back
+
+        // Left
+
+        // Right
+
+        // Top
+
+        // Bottom
+    ]),
+    uv: new Float32Array([
+        // Front
+
+        // Back
+
+        // Left
+
+        // Right
+
+        // Top
+
+        // Bottom
+    ]),
     material: {
         ambient: [0.2, 0.0, 0.0],
         diffuse: [1.0, 1.0, 1.0],
@@ -310,6 +601,45 @@ export const robotRightArm : RobotModel = {
         -2/6, -3/6, -0.5/6,
         -1/6, -3/6, 0.5/6,
         -2/6, -3/6, 0.5/6,
+    ]),
+    tangents: new Float32Array([
+        // Front
+
+        // Back
+
+        // Left
+
+        // Right
+
+        // Top
+
+        // Bottom
+    ]),
+    bitangents: new Float32Array([
+        // Front
+
+        // Back
+
+        // Left
+
+        // Right
+
+        // Top
+
+        // Bottom
+    ]),
+    uv: new Float32Array([
+        // Front
+
+        // Back
+
+        // Left
+
+        // Right
+
+        // Top
+
+        // Bottom
     ]),
     material: {
         ambient: [0.2, 0.0, 0.0],
