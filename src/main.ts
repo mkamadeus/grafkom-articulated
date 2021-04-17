@@ -20,9 +20,9 @@ import EnvironmentFragmentShader from "./shaders/EnvironmentFragmentShader.glsl"
 import BodyVertexShader from "./shaders/BodyVertexShader.glsl";
 import BodyFragmentShader from "./shaders/BodyFragmentShader.glsl";
 import { steve, steveTexture } from "./models/steve";
-import { sheep } from "./models/sheep";
+import { robo } from "./models/robo";
 
-const models: ModelNode[] = [steve,sheep];
+const models: ModelNode[] = [steve,robo];
 
 // WebGL objects
 var gl: WebGLRenderingContext | null = null;
@@ -193,7 +193,7 @@ const initModel = (model: Model) => {
     // Texture
     texcoordBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, model.uv, gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, model.normal, gl.STATIC_DRAW);
 
 
 
