@@ -380,3 +380,72 @@ export const getObliqueMatrix = (
   ]);
 
 }
+
+export const getxRotation= (
+  angleInRadians: number,
+  dst: number[]
+) => {
+  dst = dst || new Array(16);
+  var c = Math.cos(angleInRadians);
+  var s = Math.sin(angleInRadians);
+
+  dst[ 0] = 1;
+  dst[ 1] = 0;
+  dst[ 2] = 0;
+  dst[ 3] = 0;
+  dst[ 4] = 0;
+  dst[ 5] = c;
+  dst[ 6] = s;
+  dst[ 7] = 0;
+  dst[ 8] = 0;
+  dst[ 9] = -s;
+  dst[10] = c;
+  dst[11] = 0;
+  dst[12] = 0;
+  dst[13] = 0;
+  dst[14] = 0;
+  dst[15] = 1;
+  return dst
+}
+
+export const getyRotate = (
+  m : number[],
+  angleInRadians: number,
+  dst: number[]
+  ) => {
+  // this is the optimized version of
+  // return multiply(m, yRotation(angleInRadians), dst);
+  dst = dst || new Array(16);
+
+  var m00 = m[0 * 4 + 0];
+  var m01 = m[0 * 4 + 1];
+  var m02 = m[0 * 4 + 2];
+  var m03 = m[0 * 4 + 3];
+  var m20 = m[2 * 4 + 0];
+  var m21 = m[2 * 4 + 1];
+  var m22 = m[2 * 4 + 2];
+  var m23 = m[2 * 4 + 3];
+  var c = Math.cos(angleInRadians);
+  var s = Math.sin(angleInRadians);
+
+  dst[ 0] = c * m00 - s * m20;
+  dst[ 1] = c * m01 - s * m21;
+  dst[ 2] = c * m02 - s * m22;
+  dst[ 3] = c * m03 - s * m23;
+  dst[ 8] = c * m20 + s * m00;
+  dst[ 9] = c * m21 + s * m01;
+  dst[10] = c * m22 + s * m02;
+  dst[11] = c * m23 + s * m03;
+
+  if (m !== dst) {
+    dst[ 4] = m[ 4];
+    dst[ 5] = m[ 5];
+    dst[ 6] = m[ 6];
+    dst[ 7] = m[ 7];
+    dst[12] = m[12];
+    dst[13] = m[13];
+    dst[14] = m[14];
+    dst[15] = m[15];
+  }
+  return dst
+}
