@@ -35,5 +35,6 @@ interface RobotModel {
   tangents: Float32Array;
   bitangents: Float32Array;
   uv: Float32Array;
+  normal: Float32Array;
   material: Material;
 }
