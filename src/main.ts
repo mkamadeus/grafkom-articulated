@@ -11,7 +11,8 @@ import {
   getObliqueMatrix,
   getIdentityMatrix,
   getxRotation,
-  getyRotate
+  getyRotate,
+  getTranspose
 } from "./utils/Matrix4";
 import { subtractVector, addVector, transformVector } from "./utils/Vector3";
 
@@ -19,10 +20,13 @@ import EnvironmentShader from "./shaders/EnvironmentShader.glsl";
 import EnvironmentFragmentShader from "./shaders/EnvironmentFragmentShader.glsl";
 import BodyVertexShader from "./shaders/BodyVertexShader.glsl";
 import BodyFragmentShader from "./shaders/BodyFragmentShader.glsl";
+import BumpFragmentShader from "./shaders/BumpFragmentShader.glsl";
+import BumpVertexShader from "./shaders/BumpVertexShader.glsl";
 import { steve, steveTexture } from "./models/steve";
 import { robo } from "./models/robo";
+import { robot } from "./models/robot";
 
-const models: ModelNode[] = [steve,robo];
+const models: ModelNode[] = [steve,robo, robot];
 
 // WebGL objects
 var gl: WebGLRenderingContext | null = null;
@@ -60,6 +64,8 @@ let textures: WebGLTexture | null = null;
 //Position Buffer
 let positionBuffer : WebGLBuffer | null = null;
 let normalBuffer : WebGLBuffer | null = null;
+let tangentBuffer : WebGLBuffer | null = null;
+let bitangentBuffer : WebGLBuffer | null = null;
 
 let positionLocation : number ;
 let normalLocation : number;
@@ -140,7 +146,7 @@ function drawObject(parentTransformation: number[], model: ModelNode) {
 /**
  * Insert object model to WebGL buffers.
  */
-const initModel = (model: Model) => {
+const initModel = (model: Model | RobotModel) => {
 
   if (type==0) {
     gl = gl as WebGLRenderingContext;
@@ -274,6 +280,30 @@ const initModel = (model: Model) => {
     gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
     
   }
+  else if (type == 2) {
+    gl = gl as WebGLRenderingContext;
+    vbo = gl.createBuffer() as WebGLBuffer;
+
+    positionBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, model.vertices, gl.STATIC_DRAW);
+
+    normalBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, model.normal, gl.STATIC_DRAW);
+
+    tangentBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, tangentBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, model.tangents, gl.STATIC_DRAW);
+
+    bitangentBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, bitangentBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, model.bitangents, gl.STATIC_DRAW);
+
+    texcoordBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, model.uv, gl.STATIC_DRAW);
+  }
 };
 
 /**
@@ -295,11 +325,18 @@ const initShaders = () => {
   const vertexShader3D = gl.createShader(gl.VERTEX_SHADER) as WebGLShader;
   gl.shaderSource(vertexShader3D, EnvironmentShader);
   gl.compileShader(vertexShader3D);
-  
 
   const fragmentvertexShader3D = gl.createShader(gl.FRAGMENT_SHADER) as WebGLShader;
   gl.shaderSource(fragmentvertexShader3D, EnvironmentFragmentShader);
   gl.compileShader(fragmentvertexShader3D);
+
+  const vertexBump = gl.createShader(gl.VERTEX_SHADER) as WebGLShader;
+  gl.shaderSource(vertexBump, BumpVertexShader);
+  gl.compileShader(vertexBump);
+
+  const fragmentBump = gl.createShader(gl.VERTEX_SHADER) as WebGLShader;
+  gl.shaderSource(fragmentBump, BumpFragmentShader);
+  gl.compileShader(fragmentBump);
   
   // Initialize shader program
   programObject = gl.createProgram() as WebGLProgram;
@@ -308,6 +345,9 @@ const initShaders = () => {
   
   gl.attachShader(programObject, vertexShader3D);
   gl.attachShader(programObject, fragmentvertexShader3D);
+
+  gl.attachShader(programObject, vertexBump);
+  gl.attachShader(programObject, fragmentBump);
 
   // Link shader variables
   gl.bindAttribLocation(programObject, 0, "a_position");
@@ -404,7 +444,7 @@ const calculateCameraProjection = (near: number, far: number) => {
 /**
  * Draw model object.
  */
-const draw = (model: Model) => {
+const draw = (model: Model | RobotModel) => {
   initModel(model);
 
   if (type==0)  {
@@ -550,7 +590,56 @@ const draw = (model: Model) => {
   
   }
   // calculateNormal(model);
-  
+  else if (type == 2) {
+    gl = gl as WebGLRenderingContext;
+    gl.useProgram(programObject);
+
+    var attr_pos = gl.getAttribLocation(programObject, "vert_pos");
+    gl.enableVertexAttribArray(attr_pos);
+    var attr_tang = gl.getAttribLocation(programObject, "vert_tang");
+    gl.enableVertexAttribArray(attr_tang);
+    var attr_bitang = gl.getAttribLocation(programObject, "vert_bitang");
+    gl.enableVertexAttribArray(attr_bitang);
+    var attr_uv = gl.getAttribLocation(programObject, "vert_uv");
+    gl.enableVertexAttribArray(attr_uv);
+
+    var uni = gl.getUniformLocation(programObject, "model_mtx");
+    gl.uniformMatrix4fv(uni, false, robot.transform);
+
+    var uni = gl.getUniformLocation(programObject, "norm_mtx");
+    gl.uniformMatrix4fv(uni, false, getTranspose(getInverse(robot.transform)));
+
+    var uni = gl.getUniformLocation(programObject, "proj_mtx");
+    gl.uniformMatrix4fv(uni, false, multiplyMatrix(getPerspectiveMatrix(45, 680.0/382.0, 0.1, 100.0), robot.transform));
+
+    // gl.activeTexture(gl.TEXTURE0);
+    // gl.bindTexture(gl.TEXTURE_2D, tex_norm);
+    // var uni = gl.getUniformLocation(programObject, "tex_norm");
+    // gl.uniform1i(uni, 0);
+
+    // gl.activeTexture(gl.TEXTURE1);
+    // gl.bindTexture(gl.TEXTURE_2D, tex_diffuse);
+    // var uni = gl.getUniformLocation(programObject, "tex_diffuse");
+    // gl.uniform1i(uni, 1);
+
+    // gl.activeTexture(gl.TEXTURE2);
+    // gl.bindTexture(gl.TEXTURE_2D, tex_depth);
+    // var uni = gl.getUniformLocation(programObject, "tex_depth");
+    // gl.uniform1i(uni, 2);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+    gl.vertexAttribPointer(attr_pos, 3, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, tangentBuffer);
+    gl.vertexAttribPointer(attr_tang, 3, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, bitangentBuffer);
+    gl.vertexAttribPointer(attr_bitang, 3, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
+    gl.vertexAttribPointer(attr_uv, 2, gl.FLOAT, false, 0, 0);
+
+  }
 };
 
 function initEvents() {

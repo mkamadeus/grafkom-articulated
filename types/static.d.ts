@@ -30,11 +30,7 @@ interface ModelNode {
   child: ModelNode | null;
 }
 
-interface RobotModel {
-  vertices: Float32Array;
+interface RobotModel extends Model{
   tangents: Float32Array;
   bitangents: Float32Array;
-  uv: Float32Array;
-  normal: Float32Array;
-  material: Material;
 }
