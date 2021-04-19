@@ -13,6 +13,7 @@ interface Model {
   vertices: Float32Array;
   uv: Float32Array;
   material: Material;
+  normal: Float32Array;
 }
 
 interface Material {
