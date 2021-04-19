@@ -625,23 +625,23 @@ initEvents();
 resetCanvas();
 
 let currentFrame = 0;
-const frameFunction: FrameRequestCallback = () => {
-  currentFrame++;
-  // TEST: rotate arms xD
-  models[type].child!.transform = multiplyMatrix(
-    getRotationMatrix(-currentFrame * 0.001, 0, 0),
-    models[type].child!.transform
-  );
-  models[type].child!.sibling!.transform = multiplyMatrix(
-    getRotationMatrix(currentFrame * 0.001, 0, 0),
-    models[type].child!.sibling!.transform
-  );
+// const frameFunction: FrameRequestCallback = () => {
+//   currentFrame++;
+//   // TEST: rotate arms xD
+//   models[type].child!.transform = multiplyMatrix(
+//     getRotationMatrix(-currentFrame * 0.001, 0, 0),
+//     models[type].child!.transform
+//   );
+//   models[type].child!.sibling!.transform = multiplyMatrix(
+//     getRotationMatrix(currentFrame * 0.001, 0, 0),
+//     models[type].child!.sibling!.transform
+//   );
 
-  drawScene();
-  window.requestAnimationFrame(frameFunction);
-};
+//   drawScene();
+//   window.requestAnimationFrame(frameFunction);
+// };
 drawScene();
-window.requestAnimationFrame(frameFunction);
+// window.requestAnimationFrame(frameFunction);
 
 
 
