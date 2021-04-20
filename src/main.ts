@@ -14,6 +14,7 @@ import {
   getyRotate,
 } from "./utils/Matrix4";
 import { subtractVector, addVector, transformVector } from "./utils/Vector3";
+import { cloneDeep } from "lodash/fp";
 
 import EnvironmentShader from "./shaders/EnvironmentVertexShader.glsl";
 import EnvironmentFragmentShader from "./shaders/EnvironmentFragmentShader.glsl";
@@ -22,7 +23,7 @@ import BodyFragmentShader from "./shaders/BodyFragmentShader.glsl";
 import { steve, steveTexture } from "./models/steve";
 import { robo, roboTextur, roboTexture } from "./models/robo";
 
-const models: ModelNode[] = [steve,robo];
+const models: ModelNode[] = [steve, robo];
 
 // WebGL objects
 var gl: WebGLRenderingContext | null = null;
@@ -46,20 +47,20 @@ let matrixLocation: WebGLUniformLocation | null = null;
 let projectionMatrixLocation: WebGLUniformLocation | null = null;
 let textureLocation: WebGLUniformLocation | null = null;
 //WebGL uniform location Cube
-let projectionLocation : WebGLUniformLocation | null = null;
-let texture3DLocation : WebGLUniformLocation | null = null;
+let projectionLocation: WebGLUniformLocation | null = null;
+let texture3DLocation: WebGLUniformLocation | null = null;
 
-let viewLocation : WebGLUniformLocation | null = null;
-let worldLocation : WebGLUniformLocation | null = null;
-let worldCameraPositionLocation : WebGLUniformLocation | null = null;
+let viewLocation: WebGLUniformLocation | null = null;
+let worldLocation: WebGLUniformLocation | null = null;
+let worldCameraPositionLocation: WebGLUniformLocation | null = null;
 
 // WebGL texture
 let texture: WebGLTexture | null = null;
 let textures: WebGLTexture | null = null;
 
 //Position Buffer
-let positionBuffer : WebGLBuffer | null = null;
-let normalBuffer : WebGLBuffer | null = null;
+let positionBuffer: WebGLBuffer | null = null;
+let normalBuffer: WebGLBuffer | null = null;
 
 let positionLocation : number ;
 let normalLocation : number;
@@ -92,6 +93,9 @@ let zScale = 1;
 let xTranslation = 0;
 let yTranslation = 0;
 let zTranslation = 0;
+
+// animation
+let isAnimated = false;
 
 /**
  * Function to initialize canvas.
@@ -126,8 +130,8 @@ const drawScene = () => {
  */
 function drawObject(parentTransformation: number[], model: ModelNode) {
   const currentTransformation = multiplyMatrix(
-    parentTransformation,
-    model.transform
+    model.transform,
+    parentTransformation
   );
 
   if (model.child) drawObject(currentTransformation, model.child);
@@ -146,8 +150,7 @@ function drawObject(parentTransformation: number[], model: ModelNode) {
  * Insert object model to WebGL buffers.
  */
 const initModel = (model: Model) => {
-
-  if (type==0) {
+  if (type == 0) {
     gl = gl as WebGLRenderingContext;
 
     vbo = gl.createBuffer() as WebGLBuffer;
@@ -162,13 +165,13 @@ const initModel = (model: Model) => {
     // colorOffset = model.positions.byteLength;
     // gl.bufferSubData(gl.ARRAY_BUFFER, 0, model.positions);
     // gl.bufferSubData(gl.ARRAY_BUFFER, colorOffset, model.colors);
-  
+
     // Store element triangle definition
     elementVbo = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, elementVbo);
     gl.bufferData(gl.ARRAY_BUFFER, model.vertices, gl.STATIC_DRAW);
     // numElements = model.vertices.length;
-  
+
     // Texture
     texcoordBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
@@ -177,18 +180,14 @@ const initModel = (model: Model) => {
 
     // Create a texture.
     texture = gl.createTexture();
-  
+
     // Asynchronously load an image
     const image = new Image();
-    image.src =
-      "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAQMAAAAlPW0iAAAABlBMVEX////MzMw46qqDAAAAEElEQVQImWNg+M+AFeEQBgB+vw/xfUUZkgAAAABJRU5ErkJggg==";
     image.src = steveTexture;
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
     gl.generateMipmap(gl.TEXTURE_2D);
-  }
-
-  else if (type==1) {
+  } else if (type == 1) {
     gl = gl as WebGLRenderingContext;
 
     positionBuffer = gl.createBuffer() as WebGLBuffer;
@@ -198,7 +197,7 @@ const initModel = (model: Model) => {
     normalBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, model.normal, gl.STATIC_DRAW);
-    
+
     textures = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_CUBE_MAP, textures);
 
@@ -392,14 +391,14 @@ const calculateCameraProjection = (near: number, far: number) => {
 const draw = (model: Model) => {
   initModel(model);
 
-  if (type==0)  {
+  if (type == 0) {
     gl = gl as WebGLRenderingContext;
 
     // Use WebGL Program
     gl.useProgram(programObject);
-  
+
     // Retrieve buffers
-  
+
     gl.enableVertexAttribArray(0);
     gl.bindBuffer(gl.ARRAY_BUFFER, elementVbo);
     gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
@@ -407,14 +406,14 @@ const draw = (model: Model) => {
     gl.enableVertexAttribArray(1);
     gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
     gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 0, 0);
-  
+
     // Initiate transformation matrix
     gl.uniformMatrix4fv(matrixLocation, false, matrix);
     gl.uniformMatrix4fv(projectionMatrixLocation, false, projectionMatrix);
-  
+
     gl.uniform1i(textureLocation, 0);
     gl.texParameterf(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-  
+
     // Bind and draw triangles
     gl.bindBuffer(gl.ARRAY_BUFFER, elementVbo);
     gl.drawArrays(gl.TRIANGLES, numElements, gl.UNSIGNED_SHORT);
@@ -439,29 +438,13 @@ const draw = (model: Model) => {
       
     // console.log(projectionMatrix);
     // console.log(matrix);
-    // matrix = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0.5, 0, 1];
     
     let cameraPosition = [0, 0, cameraDistance];
-    // const targetPosition = [0, 0, 0];
-    // const up = [0, 1, 0];
+
   
-    // const xRotationMatrix = getRotationMatrix(xRotationCamera, 0, 0);
-    // let forwardVector = [...subtractVector(cameraPosition, targetPosition), 1];
-    // cameraPosition = addVector(
-    //   transformVector(xRotationMatrix, forwardVector),
-    //   targetPosition
-    // );
-  
-    // const yRotationMatrix = getRotationMatrix(0, yRotationCamera, 0);
-    // forwardVector = [...subtractVector(cameraPosition, targetPosition), 1];
-    // cameraPosition = addVector(
-    //   transformVector(yRotationMatrix, forwardVector),
-    //   targetPosition
-    // );
     // console.log(cameraMatrix)
     // console.log(cameraPosition);
   
-    // var cameraPosition = [0, 0, cameraDistance];
     // Passing variable into the Shader Program
     gl.uniformMatrix4fv(worldLocation, false, matrix);
     gl.uniformMatrix4fv(projectionLocation, false, projectionMatrix);
@@ -481,8 +464,64 @@ const draw = (model: Model) => {
   
   }
   // calculateNormal(model);
-  
 };
+
+const resetView = () => {
+  xCameraRotationInput.valueAsNumber = 0;
+  yRotationCamera = 0;
+  yCameraRotationInput.valueAsNumber = 0;
+  cameraDistance = 2;
+  cameraDistanceInput.valueAsNumber = 2;
+};
+
+const downloadObject = () => {
+  const a = document.createElement("a");
+  const file = new Blob([JSON.stringify(models[type])], {
+    type: "text/plain",
+  });
+  a.href = URL.createObjectURL(file);
+  a.download = `model-${new Date().getTime()}.json`;
+  a.click();
+};
+
+// Camera position related inputs
+const xCameraRotationInput = document.getElementById(
+  "x-camera-rotation"
+) as HTMLInputElement;
+const yCameraRotationInput = document.getElementById(
+  "y-camera-rotation"
+) as HTMLInputElement;
+const cameraDistanceInput = document.getElementById(
+  "camera-distance"
+) as HTMLInputElement;
+
+// JSON related buttons
+const loadJsonButton = document.getElementById(
+  "load-json"
+) as HTMLButtonElement;
+const saveJsonButton = document.getElementById(
+  "save-json"
+) as HTMLButtonElement;
+const resetButton = document.getElementById("reset") as HTMLButtonElement;
+
+// Model related buttons
+const model1Button = document.getElementById("model1") as HTMLButtonElement;
+const model2Button = document.getElementById("model2") as HTMLButtonElement;
+const model3Button = document.getElementById("model3") as HTMLButtonElement;
+
+// Camera viewing buttons
+const perspectiveButton = document.getElementById(
+  "perspective"
+) as HTMLInputElement;
+const orthographicButton = document.getElementById(
+  "orthographic"
+) as HTMLInputElement;
+const obliqueButton = document.getElementById("oblique") as HTMLInputElement;
+
+// Animation toggle button
+const animationToggleButton = document.getElementById(
+  "toggle-animation"
+) as HTMLButtonElement;
 
 function initEvents() {
   // Set initial value
@@ -498,126 +537,57 @@ function initEvents() {
   yTranslation = 0;
   zTranslation = 0;
 
-  xRotationCamera = (document.getElementById(
-    "x-camera-rotation"
-  ) as HTMLInputElement).valueAsNumber;
-  yRotationCamera = (document.getElementById(
-    "y-camera-rotation"
-  ) as HTMLInputElement).valueAsNumber;
-  cameraDistance = (document.getElementById(
-    "camera-distance"
-  ) as HTMLInputElement).valueAsNumber;
-  near = (document.getElementById("near") as HTMLInputElement).valueAsNumber;
-  far = (document.getElementById("far") as HTMLInputElement).valueAsNumber;
+  xRotationCamera = xCameraRotationInput.valueAsNumber;
+  yRotationCamera = yCameraRotationInput.valueAsNumber;
+  cameraDistance = cameraDistanceInput.valueAsNumber;
 
-  (document.getElementById("reset") as HTMLInputElement).addEventListener(
-    "click",
-    (ev) => {
-      xRotation = 0;
-      xRotationCamera = 0;
-      (document.getElementById(
-        "x-camera-rotation"
-      ) as HTMLInputElement).valueAsNumber = 0;
-      yRotationCamera = 0;
-      (document.getElementById(
-        "y-camera-rotation"
-      ) as HTMLInputElement).valueAsNumber = 0;
-      cameraDistance = 2;
-      (document.getElementById(
-        "camera-distance"
-      ) as HTMLInputElement).valueAsNumber = 2;
-      near = 1;
-      (document.getElementById("near") as HTMLInputElement).valueAsNumber = 1;
-      far = 50;
-      (document.getElementById("far") as HTMLInputElement).valueAsNumber = 50;
-      calculateMatrix();
-      calculateCameraProjection(near, far);
-    }
-  );
-  (document.getElementById(
-    "toggle-shading"
-  ) as HTMLInputElement).addEventListener("click", (ev) => {
-    shadingMode = shadingMode == 0 ? 1 : 0;
+  // Set listener for download button
+  loadJsonButton.addEventListener("click", downloadObject);
+
+  // Set listener for resetting view
+  resetButton.addEventListener("click", resetView);
+
+  // Set listener for changing models
+  model1Button.addEventListener("click", () => {
+    type = 0;
   });
-  (document.getElementById("model1") as HTMLInputElement).addEventListener(
-    "click",
-    (ev) => {
-      type = 1;
-      initModel();
-    }
-  );
-  (document.getElementById("model2") as HTMLInputElement).addEventListener(
-    "click",
-    (ev) => {
-      type = 2;
-      initModel();
-    }
-  );
-  (document.getElementById("model3") as HTMLInputElement).addEventListener(
-    "click",
-    (ev) => {
-      type = 3;
-      initModel();
-    }
-  );
-  (document.getElementById("perspective") as HTMLInputElement).addEventListener(
-    "click",
-    (ev) => {
-      projMode = 1;
-      calculateCameraProjection(near, far);
-    }
-  );
-  (document.getElementById(
-    "orthographic"
-  ) as HTMLInputElement).addEventListener("click", (ev) => {
+  model2Button.addEventListener("click", () => {
+    type = 1;
+  });
+  model3Button.addEventListener("click", () => {
+    type = 2;
+  });
+
+  // Set listener for changing view mode
+  perspectiveButton.addEventListener("click", () => {
+    projMode = 1;
+    calculateCameraProjection(near, far);
+  });
+  orthographicButton.addEventListener("click", () => {
     projMode = 2;
     calculateCameraProjection(near, far);
   });
-  (document.getElementById("oblique") as HTMLInputElement).addEventListener(
-    "click",
-    (ev) => {
-      projMode = 3;
-      calculateCameraProjection(near, far);
-    }
-  );
-  (document.getElementById("near") as HTMLInputElement).addEventListener(
-    "input",
-    (ev) => {
-      near = (document.getElementById("near") as HTMLInputElement)
-        .valueAsNumber;
-      calculateCameraProjection(near, far);
-    }
-  );
-  (document.getElementById("far") as HTMLInputElement).addEventListener(
-    "input",
-    (ev) => {
-      far = (document.getElementById("far") as HTMLInputElement).valueAsNumber;
-      calculateCameraProjection(near, far);
-    }
-  );
-  (document.getElementById(
-    "x-camera-rotation"
-  ) as HTMLInputElement).addEventListener("input", (ev) => {
-    xRotationCamera = (document.getElementById(
-      "x-camera-rotation"
-    ) as HTMLInputElement).valueAsNumber;
-    // calculateCameraProjection(near, far, projMode);
+  obliqueButton.addEventListener("click", () => {
+    projMode = 3;
+    calculateCameraProjection(near, far);
   });
-  (document.getElementById(
-    "y-camera-rotation"
-  ) as HTMLInputElement).addEventListener("input", (ev) => {
-    yRotationCamera = (document.getElementById(
-      "y-camera-rotation"
-    ) as HTMLInputElement).valueAsNumber;
-    calculateCameraProjection(near, far, projMode);
+
+  // Set listener for changing camera position
+  xCameraRotationInput.addEventListener("input", () => {
+    xRotationCamera = xCameraRotationInput.valueAsNumber;
   });
-  (document.getElementById(
-    "camera-distance"
-  ) as HTMLInputElement).addEventListener("input", (ev) => {
-    cameraDistance = (document.getElementById(
-      "camera-distance"
-    ) as HTMLInputElement).valueAsNumber;
-    calculateCameraProjection(near, far, projMode);
+  yCameraRotationInput.addEventListener("input", () => {
+    yRotationCamera = yCameraRotationInput.valueAsNumber;
+    calculateCameraProjection(near, far);
+  });
+  cameraDistanceInput.addEventListener("input", () => {
+    cameraDistance = cameraDistanceInput.valueAsNumber;
+    calculateCameraProjection(near, far);
+  });
+
+  // Set listener for toggling animation
+  animationToggleButton.addEventListener("click", () => {
+    isAnimated = !isAnimated;
   });
 }
 
@@ -642,21 +612,34 @@ resetCanvas();
 let currentFrame = 0;
 // const frameFunction: FrameRequestCallback = () => {
 //   currentFrame++;
-//   // TEST: rotate arms xD
-//   models[type].child!.transform = multiplyMatrix(
-//     getRotationMatrix(-currentFrame * 0.001, 0, 0),
-//     models[type].child!.transform
-//   );
-//   models[type].child!.sibling!.transform = multiplyMatrix(
-//     getRotationMatrix(currentFrame * 0.001, 0, 0),
-//     models[type].child!.sibling!.transform
-//   );
 
-//   drawScene();
+//   const animation = (m: ModelNode) => {
+//     if (m.child) animation(m.child);
+//     if (m.sibling) animation(m.sibling);
+
+//     const { ax, fx, ay, fy, az, fz } = m.animation;
+//     m.transform = multiplyMatrix(
+//       getRotationMatrix(
+//         ax * Math.sin(fx * currentFrame),
+//         ay * Math.sin(fy * currentFrame),
+//         az * Math.sin(fz * currentFrame)
+//       ),
+//       m.transform
+//     );
+//   };
+
+//   calculateCameraProjection(near, far);
+//   calculateCameraProjection(near, far);
+//   const copied = cloneDeep(models[type]);
+//   // console.log(copied, models[type]);
+//   if (type === 0) {
+//     isAnimated && animation(models[type]);
+//     drawScene();
+//     models[type] = copied;
+//   }
+//   // const
+
 //   window.requestAnimationFrame(frameFunction);
 // };
 drawScene();
 // window.requestAnimationFrame(frameFunction);
-
-
-
