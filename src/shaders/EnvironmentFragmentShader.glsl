@@ -12,7 +12,7 @@ uniform vec3 u_worldCameraPosition_2;
 
 void main() {
    vec3 worldNormal = normalize(v_worldNormal_2);
-   vec3 eyeToSurfaceDir = normalize(v_worldPosition_2 - u_worldCameraPosition_2);
-   vec3 direction = reflect(eyeToSurfaceDir,worldNormal);
+   vec3 eyeToSurface = normalize(v_worldPosition_2 - u_worldCameraPosition_2);
+   vec3 direction = reflect(eyeToSurface,worldNormal);
    gl_FragColor = textureCube(u_texture_2, direction);
 }

@@ -12,7 +12,6 @@ import {
   getIdentityMatrix,
   getxRotation,
   getyRotate,
-  getflatten
 } from "./utils/Matrix4";
 import { subtractVector, addVector, transformVector } from "./utils/Vector3";
 
@@ -23,7 +22,7 @@ import BodyFragmentShader from "./shaders/BodyFragmentShader.glsl";
 import { steve, steveTexture } from "./models/steve";
 import { robo, roboTextur, roboTexture } from "./models/robo";
 
-const models: ModelNode[] = [steve,steve];
+const models: ModelNode[] = [steve,robo];
 
 // WebGL objects
 var gl: WebGLRenderingContext | null = null;
@@ -64,6 +63,7 @@ let normalBuffer : WebGLBuffer | null = null;
 
 let positionLocation : number ;
 let normalLocation : number;
+let cameraPosition : number[];
 
 // Variables
 let matrix = Array(16).fill(0);
@@ -115,7 +115,7 @@ const resetCanvas = () => {
  * Draw scene
  */
 const drawScene = () => {
-  calculateCameraProjection(near, far);
+  // calculateCameraProjection(near, far);
   calculateCameraProjection(near, far);
   drawObject(getIdentityMatrix(), models[type]);
 };
@@ -193,7 +193,7 @@ const initModel = (model: Model) => {
 
     normalBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, model.uv, gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, model.normal, gl.STATIC_DRAW);
     
     textures = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_CUBE_MAP, textures);
@@ -233,10 +233,10 @@ const initModel = (model: Model) => {
       const width = 512;
       const height = 512;
       const format = gl.RGBA;
-      const type = gl.UNSIGNED_BYTE;
+      const types = gl.UNSIGNED_BYTE;
   
       // setup each face so it's immediately renderable
-      gl.texImage2D(target, level, internalFormat, width, height, 0, format, type, null);
+      gl.texImage2D(target, level, internalFormat, width, height, 0, format, types, null);
   
       // Asynchronously load an image
       const image = new Image();
@@ -244,7 +244,7 @@ const initModel = (model: Model) => {
       image.onload = () => {
         // Now that the image has loaded make copy it to the texture.
         gl.bindTexture(gl.TEXTURE_CUBE_MAP, textures);
-        gl.texImage2D(target, level, internalFormat, format, type, image);
+        gl.texImage2D(target, level, internalFormat, format, types, image);
         gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
       };
     });
@@ -305,12 +305,12 @@ const initShaders = () => {
     // look up where the vertex data needs to go.
     positionLocation = gl.getAttribLocation(programObject, "a_position_2"); //positionLocation
     normalLocation = gl.getAttribLocation(programObject, "a_normal_2"); //Normal Location
-
+    
+    worldLocation = gl.getUniformLocation(programObject, "u_world_2");
     projectionLocation = gl.getUniformLocation(programObject, "u_projection_2");
     texture3DLocation = gl.getUniformLocation(programObject, "u_texture_2");
-    worldLocation = gl.getUniformLocation(programObject, "u_world_2");
     worldCameraPositionLocation = gl.getUniformLocation(programObject, "u_worldCameraPosition_2");
-
+    viewLocation =  gl.getUniformLocation(programObject, "u_view_2");
   }
 };
 
@@ -339,7 +339,7 @@ const calculateCameraProjection = (near: number, far: number) => {
   gl = gl as WebGLRenderingContext;
 
   // Arcball camera calculation
-  let cameraPosition = [0, 0, cameraDistance];
+  cameraPosition = [0, 0, cameraDistance];
   const targetPosition = [0, 0, 0];
   const up = [0, 1, 0];
 
@@ -447,11 +447,12 @@ const draw = (model: Model) => {
     gl.vertexAttribPointer(
         normalLocation, size, types, normalize, stride, offset);
       
-    var cameraPosition = [0, 0, cameraDistance];
+    // var cameraPosition = [0, 0, cameraDistance];
   
     // Passing variable into the Shader Program
-    gl.uniformMatrix4fv(projectionLocation, false, projectionMatrix);
     gl.uniformMatrix4fv(worldLocation, false, matrix);
+    gl.uniformMatrix4fv(projectionLocation, false, projectionMatrix);
+    gl.uniformMatrix4fv(viewLocation, false, cameraMatrix);
     gl.uniform3fv(worldCameraPositionLocation, cameraPosition);
     
     // Tell the shader to use texture unit 0 for u_texture
