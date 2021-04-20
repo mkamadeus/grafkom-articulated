@@ -63,7 +63,7 @@ let normalBuffer : WebGLBuffer | null = null;
 
 let positionLocation : number ;
 let normalLocation : number;
-let cameraPosition : number[];
+let cameraPosition : number;
 
 // Variables
 let matrix = Array(16).fill(0);
@@ -134,8 +134,12 @@ function drawObject(parentTransformation: number[], model: ModelNode) {
   if (model.sibling) drawObject(parentTransformation, model.sibling);
 
   // calculateMatrix(model);
+  
   matrix = currentTransformation;
+  // console.log(matrix)
+  // console.log(model.render)
   draw(model.render);
+  
 }
 
 /**
@@ -231,7 +235,7 @@ const initModel = (model: Model) => {
       const level = 0;
       const internalFormat = gl.RGBA;
       const width = 512;
-      const height = 512;
+      const height = 64;
       const format = gl.RGBA;
       const types = gl.UNSIGNED_BYTE;
   
@@ -339,7 +343,7 @@ const calculateCameraProjection = (near: number, far: number) => {
   gl = gl as WebGLRenderingContext;
 
   // Arcball camera calculation
-  cameraPosition = [0, 0, cameraDistance];
+  let cameraPosition = [0, 0, cameraDistance];
   const targetPosition = [0, 0, 0];
   const up = [0, 1, 0];
 
@@ -420,50 +424,60 @@ const draw = (model: Model) => {
 
     // Use WebGL Program
     gl.useProgram(programObject);
-  
+    
     // Turn on the position attribute
     gl.enableVertexAttribArray(positionLocation);
-    // Bind the position buffer.
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-    // Tell the position attribute how to get data out of positionBuffer (ARRAY_BUFFER)
-    var size = 3;          // 3 components per iteration
-    var types = gl.FLOAT;   // the data is 32bit floats
-    var normalize = false; // don't normalize the data
-    var stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
-    var offset = 0;        // start at the beginning of the buffer
     gl.vertexAttribPointer(
-        positionLocation, size, types, normalize, stride, offset);
+        positionLocation, 3, gl.FLOAT, false, 0, 0);
 
     // Turn on the normal attribute
     gl.enableVertexAttribArray(normalLocation);
-    // Bind the normal buffer.
     gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
-    // Tell the attribute how to get data out of normalBuffer (ARRAY_BUFFER)
-    var size = 3;          // 3 components per iteration
-    var types = gl.FLOAT;   // the data is 32bit floating point values
-    var normalize = false; // normalize the data (convert from 0-255 to 0-1)
-    var stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
-    var offset = 0;        // start at the beginning of the buffer
     gl.vertexAttribPointer(
-        normalLocation, size, types, normalize, stride, offset);
+        normalLocation, 3, gl.FLOAT, false, 0, 0);
       
-    // var cameraPosition = [0, 0, cameraDistance];
+    // console.log(projectionMatrix);
+    // console.log(matrix);
+    // matrix = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0.5, 0, 1];
+    
+    let cameraPosition = [0, 0, cameraDistance];
+    // const targetPosition = [0, 0, 0];
+    // const up = [0, 1, 0];
   
+    // const xRotationMatrix = getRotationMatrix(xRotationCamera, 0, 0);
+    // let forwardVector = [...subtractVector(cameraPosition, targetPosition), 1];
+    // cameraPosition = addVector(
+    //   transformVector(xRotationMatrix, forwardVector),
+    //   targetPosition
+    // );
+  
+    // const yRotationMatrix = getRotationMatrix(0, yRotationCamera, 0);
+    // forwardVector = [...subtractVector(cameraPosition, targetPosition), 1];
+    // cameraPosition = addVector(
+    //   transformVector(yRotationMatrix, forwardVector),
+    //   targetPosition
+    // );
+    // console.log(cameraMatrix)
+    // console.log(cameraPosition);
+  
+    // var cameraPosition = [0, 0, cameraDistance];
     // Passing variable into the Shader Program
     gl.uniformMatrix4fv(worldLocation, false, matrix);
     gl.uniformMatrix4fv(projectionLocation, false, projectionMatrix);
     gl.uniformMatrix4fv(viewLocation, false, cameraMatrix);
     gl.uniform3fv(worldCameraPositionLocation, cameraPosition);
-    
     // Tell the shader to use texture unit 0 for u_texture
     gl.uniform1i(texture3DLocation, 0);
 
     // Draw the geometry.
     // Draw arrays with Triangle Fan Type
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-    for (let i =0; i < 6; i++) {
-      gl.drawArrays(gl.TRIANGLE_FAN, 4*i, 4);
-    }
+    // for (let i =0; i < 6; i++) {
+    //   gl.drawArrays(gl.TRIANGLE_FAN, 4*i, 4);
+    // }
+    
+    gl.drawArrays(gl.TRIANGLES, 0, 6 * 6);
   
   }
   // calculateNormal(model);
