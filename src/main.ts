@@ -57,6 +57,10 @@ let viewLocation : WebGLUniformLocation | null = null;
 let worldLocation : WebGLUniformLocation | null = null;
 let worldCameraPositionLocation : WebGLUniformLocation | null = null;
 
+let uniformModel : WebGLUniformLocation | null = null;
+let uniformNormal : WebGLUniformLocation | null = null;
+let uniformProjection : WebGLUniformLocation | null = null;
+
 // WebGL texture
 let texture: WebGLTexture | null = null;
 let textures: WebGLTexture | null = null;
@@ -69,6 +73,10 @@ let bitangentBuffer : WebGLBuffer | null = null;
 
 let positionLocation : number ;
 let normalLocation : number;
+let attr_pos : number ;
+let attr_tang : number ;
+let attr_bitang : number ;
+let attr_uv : number ;
 
 // Variables
 let matrix = Array(16).fill(0);
@@ -371,6 +379,15 @@ const initShaders = () => {
   viewLocation = gl.getUniformLocation(programObject, "u_view_2");
   worldLocation = gl.getUniformLocation(programObject, "u_world_2");
   worldCameraPositionLocation = gl.getUniformLocation(programObject, "u_worldCameraPosition_2");
+
+  uniformModel = gl.getUniformLocation(programObject, "model_mtx");
+  uniformNormal = gl.getUniformLocation(programObject, "norm_mtx");
+  uniformProjection = gl.getUniformLocation(programObject, "proj_mtx");
+
+  attr_pos = gl.getAttribLocation(programObject, "vert_pos");
+  attr_tang = gl.getAttribLocation(programObject, "vert_tang");
+  attr_bitang = gl.getAttribLocation(programObject, "vert_bitang");
+  attr_uv = gl.getAttribLocation(programObject, "vert_uv");
 };
 
 /**
@@ -594,23 +611,14 @@ const draw = (model: Model | RobotModel) => {
     gl = gl as WebGLRenderingContext;
     gl.useProgram(programObject);
 
-    var attr_pos = gl.getAttribLocation(programObject, "vert_pos");
+    gl.uniformMatrix4fv(uniformModel, false, robot.transform);
+    gl.uniformMatrix4fv(uniformNormal, false, getTranspose(getInverse(robot.transform)));
+    gl.uniformMatrix4fv(uniformProjection, false, multiplyMatrix(getPerspectiveMatrix(45, 680.0/382.0, near, far), robot.transform));
+
     gl.enableVertexAttribArray(attr_pos);
-    var attr_tang = gl.getAttribLocation(programObject, "vert_tang");
     gl.enableVertexAttribArray(attr_tang);
-    var attr_bitang = gl.getAttribLocation(programObject, "vert_bitang");
     gl.enableVertexAttribArray(attr_bitang);
-    var attr_uv = gl.getAttribLocation(programObject, "vert_uv");
     gl.enableVertexAttribArray(attr_uv);
-
-    var uni = gl.getUniformLocation(programObject, "model_mtx");
-    gl.uniformMatrix4fv(uni, false, robot.transform);
-
-    var uni = gl.getUniformLocation(programObject, "norm_mtx");
-    gl.uniformMatrix4fv(uni, false, getTranspose(getInverse(robot.transform)));
-
-    var uni = gl.getUniformLocation(programObject, "proj_mtx");
-    gl.uniformMatrix4fv(uni, false, multiplyMatrix(getPerspectiveMatrix(45, 680.0/382.0, 0.1, 100.0), robot.transform));
 
     // gl.activeTexture(gl.TEXTURE0);
     // gl.bindTexture(gl.TEXTURE_2D, tex_norm);
