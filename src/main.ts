@@ -80,7 +80,7 @@ let attr_uv : number ;
 
 // Variables
 let matrix = Array(16).fill(0);
-let type: 0 | 1 | 2 = 1;
+let type: 0 | 1 | 2 = 2;
 let shadingMode = 1;
 let projMode = 1;
 let near = 1;
@@ -292,6 +292,18 @@ const initModel = (model: Model | RobotModel) => {
     gl = gl as WebGLRenderingContext;
     vbo = gl.createBuffer() as WebGLBuffer;
 
+    textures = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, textures);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([255, 0, 0, 255]));
+    var img = new Image();
+    img.onload = function() {
+        gl.bindTexture(gl.TEXTURE_2D, textures);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    }
+    img.src = "./models/wood.jpg";
+
     positionBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, model.vertices, gl.STATIC_DRAW);
@@ -311,6 +323,11 @@ const initModel = (model: Model | RobotModel) => {
     texcoordBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, model.uv, gl.STATIC_DRAW);
+
+    gl.activeTexture(gl.TEXTURE1);
+    gl.bindTexture(gl.TEXTURE_2D, textures);
+    var uni = gl.getUniformLocation(programObject, "tex_diffuse");
+    gl.uniform1i(uni, 1);
   }
 };
 
@@ -646,7 +663,8 @@ const draw = (model: Model | RobotModel) => {
 
     gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
     gl.vertexAttribPointer(attr_uv, 2, gl.FLOAT, false, 0, 0);
-
+    
+    gl.drawArrays(gl.TRIANGLES, numElements, gl.UNSIGNED_SHORT);
   }
 };
 
@@ -708,22 +726,23 @@ function initEvents() {
   (document.getElementById("model1") as HTMLInputElement).addEventListener(
     "click",
     (ev) => {
-      type = 1;
-      initModel();
+      type = 0;
+      initModel(models[type]);
     }
   );
   (document.getElementById("model2") as HTMLInputElement).addEventListener(
     "click",
     (ev) => {
-      type = 2;
-      initModel();
+      type = 1;
+      initModel(models[type]);
     }
   );
   (document.getElementById("model3") as HTMLInputElement).addEventListener(
     "click",
     (ev) => {
-      type = 3;
-      initModel();
+      console.log("a");
+      type = 2;
+      initModel(models[type]);
     }
   );
   (document.getElementById("perspective") as HTMLInputElement).addEventListener(
@@ -775,7 +794,7 @@ function initEvents() {
     yRotationCamera = (document.getElementById(
       "y-camera-rotation"
     ) as HTMLInputElement).valueAsNumber;
-    calculateCameraProjection(near, far, projMode);
+    calculateCameraProjection(near, far);
   });
   (document.getElementById(
     "camera-distance"
@@ -783,7 +802,7 @@ function initEvents() {
     cameraDistance = (document.getElementById(
       "camera-distance"
     ) as HTMLInputElement).valueAsNumber;
-    calculateCameraProjection(near, far, projMode);
+    calculateCameraProjection(near, far);
   });
 }
 
