@@ -93,6 +93,9 @@ let xTranslation = 0;
 let yTranslation = 0;
 let zTranslation = 0;
 
+// animation
+let isAnimated = false;
+
 /**
  * Function to initialize canvas.
  */
@@ -603,6 +606,63 @@ const draw = (model: Model) => {
   // calculateNormal(model);
 };
 
+const resetView = () => {
+  xCameraRotationInput.valueAsNumber = 0;
+  yRotationCamera = 0;
+  yCameraRotationInput.valueAsNumber = 0;
+  cameraDistance = 2;
+  cameraDistanceInput.valueAsNumber = 2;
+};
+
+const downloadObject = () => {
+  const a = document.createElement("a");
+  const file = new Blob([JSON.stringify(models[type])], {
+    type: "text/plain",
+  });
+  a.href = URL.createObjectURL(file);
+  a.download = `model-${new Date().getTime()}.json`;
+  a.click();
+};
+
+// Camera position related inputs
+const xCameraRotationInput = document.getElementById(
+  "x-camera-rotation"
+) as HTMLInputElement;
+const yCameraRotationInput = document.getElementById(
+  "y-camera-rotation"
+) as HTMLInputElement;
+const cameraDistanceInput = document.getElementById(
+  "camera-distance"
+) as HTMLInputElement;
+
+// JSON related buttons
+const loadJsonButton = document.getElementById(
+  "load-json"
+) as HTMLButtonElement;
+const saveJsonButton = document.getElementById(
+  "save-json"
+) as HTMLButtonElement;
+const resetButton = document.getElementById("reset") as HTMLButtonElement;
+
+// Model related buttons
+const model1Button = document.getElementById("model1") as HTMLButtonElement;
+const model2Button = document.getElementById("model2") as HTMLButtonElement;
+const model3Button = document.getElementById("model3") as HTMLButtonElement;
+
+// Camera viewing buttons
+const perspectiveButton = document.getElementById(
+  "perspective"
+) as HTMLInputElement;
+const orthographicButton = document.getElementById(
+  "orthographic"
+) as HTMLInputElement;
+const obliqueButton = document.getElementById("oblique") as HTMLInputElement;
+
+// Animation toggle button
+const animationToggleButton = document.getElementById(
+  "toggle-animation"
+) as HTMLButtonElement;
+
 function initEvents() {
   // Set initial value
   xRotation = 0;
@@ -617,145 +677,59 @@ function initEvents() {
   yTranslation = 0;
   zTranslation = 0;
 
-  xRotationCamera = (document.getElementById(
-    "x-camera-rotation"
-  ) as HTMLInputElement).valueAsNumber;
-  yRotationCamera = (document.getElementById(
-    "y-camera-rotation"
-  ) as HTMLInputElement).valueAsNumber;
-  cameraDistance = (document.getElementById(
-    "camera-distance"
-  ) as HTMLInputElement).valueAsNumber;
-  near = (document.getElementById("near") as HTMLInputElement).valueAsNumber;
-  far = (document.getElementById("far") as HTMLInputElement).valueAsNumber;
+  xRotationCamera = xCameraRotationInput.valueAsNumber;
+  yRotationCamera = yCameraRotationInput.valueAsNumber;
+  cameraDistance = cameraDistanceInput.valueAsNumber;
 
-  (document.getElementById("load-json") as HTMLButtonElement).addEventListener(
-    "click",
-    (ev) => {
-      const a = document.createElement("a");
-      const file = new Blob([JSON.stringify(models[type])], {
-        type: "text/plain",
-      });
-      a.href = URL.createObjectURL(file);
-      a.download = `model-${new Date().getTime()}.json`;
-      a.click();
-    }
-  );
+  // Set listener for download button
+  loadJsonButton.addEventListener("click", downloadObject);
 
-  (document.getElementById("reset") as HTMLInputElement).addEventListener(
-    "click",
-    (ev) => {
-      xRotation = 0;
-      xRotationCamera = 0;
-      (document.getElementById(
-        "x-camera-rotation"
-      ) as HTMLInputElement).valueAsNumber = 0;
-      yRotationCamera = 0;
-      (document.getElementById(
-        "y-camera-rotation"
-      ) as HTMLInputElement).valueAsNumber = 0;
-      cameraDistance = 2;
-      (document.getElementById(
-        "camera-distance"
-      ) as HTMLInputElement).valueAsNumber = 2;
-      near = 1;
-      (document.getElementById("near") as HTMLInputElement).valueAsNumber = 1;
-      far = 50;
-      (document.getElementById("far") as HTMLInputElement).valueAsNumber = 50;
-      calculateMatrix();
-      calculateCameraProjection(near, far);
-    }
-  );
-  (document.getElementById(
-    "toggle-shading"
-  ) as HTMLInputElement).addEventListener("click", (ev) => {
-    shadingMode = shadingMode == 0 ? 1 : 0;
+  // Set listener for resetting view
+  resetButton.addEventListener("click", resetView);
+
+  // Set listener for changing models
+  model1Button.addEventListener("click", () => {
+    type = 0;
   });
-  (document.getElementById("model1") as HTMLInputElement).addEventListener(
-    "click",
-    (ev) => {
-      type = 1;
-      initModel();
-    }
-  );
-  (document.getElementById("model2") as HTMLInputElement).addEventListener(
-    "click",
-    (ev) => {
-      type = 2;
-      initModel();
-    }
-  );
-  (document.getElementById("model3") as HTMLInputElement).addEventListener(
-    "click",
-    (ev) => {
-      type = 3;
-      initModel();
-    }
-  );
-  (document.getElementById("perspective") as HTMLInputElement).addEventListener(
-    "click",
-    (ev) => {
-      projMode = 1;
-      calculateCameraProjection(near, far);
-    }
-  );
-  (document.getElementById(
-    "orthographic"
-  ) as HTMLInputElement).addEventListener("click", (ev) => {
+  model2Button.addEventListener("click", () => {
+    type = 1;
+  });
+  model3Button.addEventListener("click", () => {
+    type = 2;
+  });
+
+  // Set listener for changing view mode
+  perspectiveButton.addEventListener("click", () => {
+    projMode = 1;
+    calculateCameraProjection(near, far);
+  });
+  orthographicButton.addEventListener("click", () => {
     projMode = 2;
     calculateCameraProjection(near, far);
   });
-  (document.getElementById("oblique") as HTMLInputElement).addEventListener(
-    "click",
-    (ev) => {
-      projMode = 3;
-      calculateCameraProjection(near, far);
-    }
-  );
-  (document.getElementById("near") as HTMLInputElement).addEventListener(
-    "input",
-    (ev) => {
-      near = (document.getElementById("near") as HTMLInputElement)
-        .valueAsNumber;
-      calculateCameraProjection(near, far);
-    }
-  );
-  (document.getElementById("far") as HTMLInputElement).addEventListener(
-    "input",
-    (ev) => {
-      far = (document.getElementById("far") as HTMLInputElement).valueAsNumber;
-      calculateCameraProjection(near, far);
-    }
-  );
-  (document.getElementById(
-    "x-camera-rotation"
-  ) as HTMLInputElement).addEventListener("input", (ev) => {
-    xRotationCamera = (document.getElementById(
-      "x-camera-rotation"
-    ) as HTMLInputElement).valueAsNumber;
-    // calculateCameraProjection(near, far, projMode);
+  obliqueButton.addEventListener("click", () => {
+    projMode = 3;
+    calculateCameraProjection(near, far);
   });
-  (document.getElementById(
-    "y-camera-rotation"
-  ) as HTMLInputElement).addEventListener("input", (ev) => {
-    yRotationCamera = (document.getElementById(
-      "y-camera-rotation"
-    ) as HTMLInputElement).valueAsNumber;
-    calculateCameraProjection(near, far, projMode);
+
+  // Set listener for changing camera position
+  xCameraRotationInput.addEventListener("input", () => {
+    xRotationCamera = xCameraRotationInput.valueAsNumber;
   });
-  (document.getElementById(
-    "camera-distance"
-  ) as HTMLInputElement).addEventListener("input", (ev) => {
-    cameraDistance = (document.getElementById(
-      "camera-distance"
-    ) as HTMLInputElement).valueAsNumber;
-    calculateCameraProjection(near, far, projMode);
+  yCameraRotationInput.addEventListener("input", () => {
+    yRotationCamera = yCameraRotationInput.valueAsNumber;
+    calculateCameraProjection(near, far);
+  });
+  cameraDistanceInput.addEventListener("input", () => {
+    cameraDistance = cameraDistanceInput.valueAsNumber;
+    calculateCameraProjection(near, far);
+  });
+
+  // Set listener for toggling animation
+  animationToggleButton.addEventListener("click", () => {
+    isAnimated = !isAnimated;
   });
 }
-
-const duplicateModel = (m: ModelNode) => {
-  const result = JSON.parse(JSON.stringify(m)) as ModelNode;
-};
 
 // Get Canvas
 const canvas = document.getElementById("webgl-canvas") as HTMLCanvasElement;
@@ -780,11 +754,6 @@ const frameFunction: FrameRequestCallback = () => {
   currentFrame++;
 
   const animation = (m: ModelNode) => {
-    // const currentTransformation = multiplyMatrix(
-    //   parentTransformation,
-    //   m.transform
-    // );
-
     if (m.child) animation(m.child);
     if (m.sibling) animation(m.sibling);
 
@@ -797,14 +766,6 @@ const frameFunction: FrameRequestCallback = () => {
       ),
       m.transform
     );
-    // m.child!.transform = multiplyMatrix(
-    //   getRotationMatrix(Math.sin(0.15 * currentFrame) * 50, 0, 0),
-    //   m.child!.transform
-    // );
-    // m.sibling!.transform = multiplyMatrix(
-    //   getRotationMatrix(Math.sin(0.15 * currentFrame) * 50, 0, 0),
-    //   m.sibling!.transform
-    // );
   };
 
   calculateCameraProjection(near, far);
@@ -812,25 +773,13 @@ const frameFunction: FrameRequestCallback = () => {
   const copied = cloneDeep(models[type]);
   // console.log(copied, models[type]);
   if (type === 0) {
-    animation(models[type]);
-    console.log(models[type]);
-    // // TEST: rotate arms xD
-    // models[type].child!.transform = multiplyMatrix(
-    //   getRotationMatrix(Math.sin(0.15 * currentFrame) * 50, 0, 0),
-    //   models[type].child!.transform
-    // );
-    // models[type].child!.sibling!.transform = multiplyMatrix(
-    //   getRotationMatrix(Math.sin(0.15 * currentFrame) * -50, 0, 0),
-    //   models[type].child!.sibling!.transform
-    // );
-
+    isAnimated && animation(models[type]);
     drawScene();
     models[type] = copied;
-    // models[type].child!.sibling!.transform = cloned2;
   }
   // const
 
   window.requestAnimationFrame(frameFunction);
 };
-drawScene();
+// drawScene();
 window.requestAnimationFrame(frameFunction);
