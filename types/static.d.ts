@@ -26,6 +26,16 @@ interface Material {
 interface ModelNode {
   transform: number[];
   render: Model;
+  animation: ModelAnimation;
   sibling: ModelNode | null;
   child: ModelNode | null;
+}
+
+interface ModelAnimation {
+  ax: number;
+  fx: number;
+  ay: number;
+  fy: number;
+  az: number;
+  fz: number;
 }

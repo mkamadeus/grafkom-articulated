@@ -727,54 +727,243 @@ export const steveHead : Model = {
 }
 
 // prettier-ignore
+export const steveItem : Model = {
+  vertices: new Float32Array([
+    // front
+    -0.25, 0.0, 0.25,
+    0.25, 0.0, 0.25,
+    0.25, 0.5, 0.25,
+    
+    -0.25, 0.0, 0.25,
+    0.25, 0.5, 0.25,
+    -0.25, 0.5, 0.25,
+    
+    // back
+    -0.25, 0.0, -0.25,
+    0.25, 0.0, -0.25,
+    0.25, 0.5, -0.25,
+
+    -0.25, 0.0, -0.25,
+    0.25, 0.5, -0.25,
+    -0.25, 0.5, -0.25,
+
+    // left
+    0.25, 0.0, 0.25,
+    0.25, 0.0, -0.25,
+    0.25, 0.5, -0.25,
+    
+    0.25, 0.0, 0.25,
+    0.25, 0.5, -0.25,
+    0.25, 0.5, 0.25,
+
+    // right
+    -0.25, 0.0, -0.25,
+    -0.25, 0.0, 0.25,
+    -0.25, 0.5, 0.25,
+    
+    -0.25, 0.0, -0.25,
+    -0.25, 0.5, 0.25,
+    -0.25, 0.5, -0.25,
+
+    // bottom
+    -0.25, 0.0, 0.25,
+    -0.25, 0.0, -0.25,
+    0.25, 0.0, -0.25,
+    
+    -0.25, 0.0, 0.25,
+    0.25, 0.0, -0.25,
+    0.25, 0.0, 0.25,
+    
+    // top
+    -0.25, 0.5, 0.25,
+    0.25, 0.5, -0.25,
+    -0.25, 0.5, -0.25,
+    
+    -0.25, 0.5, 0.25,
+    0.25, 0.5, 0.25,
+    0.25, 0.5, -0.25,
+
+
+  ]),
+  material: {
+    ambient: [0.2, 0.0, 0.0],
+    diffuse: [1.0, 1.0, 1.0],
+    specular: [1.0, 1.0, 1.0],
+    shininess: 100.0,
+  },
+  uv: new Float32Array([
+    // front
+    8/64, 16/64,
+    16/64, 16/64,
+    16/64, 8/64,
+
+    8/64, 16/64,
+    16/64, 8/64,
+    8/64, 8/64,
+
+    // back
+    24/64, 16/64,
+    32/64, 16/64,
+    32/64, 8/64,
+
+    24/64, 16/64,
+    32/64, 8/64,
+    24/64, 8/64,
+
+    // left
+    16/64, 16/64,
+    16/64, 16/64,
+    24/64, 8/64,
+
+    16/64, 16/64,
+    24/64, 8/64,
+    16/64, 8/64,
+    
+    // right
+    0/64, 16/64,
+    8/64, 16/64,
+    8/64, 8/64,
+    
+    0/64, 16/64,
+    8/64, 8/64,
+    0/64, 8/64,
+    
+    // bottom
+    16/64, 0/64,
+    16/64, 8/64,
+    24/64, 8/64,
+
+    16/64, 0/64,
+    24/64, 8/64,
+    24/64, 0/64,
+
+    // top
+    8/64, 0/64,
+    16/64, 8/64,
+    8/64, 8/64,
+
+    8/64, 0/64,
+    16/64, 0/64,
+    16/64, 8/64,
+    
+  ])
+}
+
+// prettier-ignore
 export const steve : ModelNode = {
   transform: [1, 0, 0, 0,
     0, 1, 0, 0,
     0, 0, 1, 0,
     0, 0, 0, 1],
-    render: steveTorso,
-    sibling: null,
-    child: {
+  render: steveTorso,
+  sibling: null,
+  animation: {
+    ax: 0,
+    fx: 0,
+    ay: -5,
+    fy: 0.1,
+    az: -1.5,
+    fz: 0.1,
+  },
+  child: {
+    transform: [1, 0, 0, 0,
+      0, 1, 0, 0,
+      0, 0, 1, 0,
+      0.375, 0.5, 0, 1],
+    render: steveLeftArm,
+    animation: {
+      ax: -50,
+      fx: 0.1,
+      ay: 0,
+      fy: 0,
+      az: 0,
+      fz: 0,
+    },
+    sibling: {
       transform: [1, 0, 0, 0,
         0, 1, 0, 0,
         0, 0, 1, 0,
-        0.375, 0.5, 0, 1],
-      render: steveLeftArm,
+        -0.375, 0.5, 0, 1],
+      render: steveRightArm,
+      animation: {
+        ax: 50,
+        fx: 0.1,
+        ay: 0,
+        fy: 0,
+        az: 0,
+        fz: 0,
+      },
       sibling: {
         transform: [1, 0, 0, 0,
           0, 1, 0, 0,
           0, 0, 1, 0,
-          -0.375, 0.5, 0, 1],
-        render: steveRightArm,
-        sibling: {
-          transform: [1, 0, 0, 0,
-            0, 1, 0, 0,
-            0, 0, 1, 0,
-            0.125, -0.25, 0, 1],
-            render: steveLeftLeg,
-            sibling: {
-              transform: [1, 0, 0, 0,
-                0, 1, 0, 0,
-                0, 0, 1, 0,
-                -0.125, -0.25, 0, 1],
-                render: steveRightLeg,
-                sibling: {
-                  transform: [1, 0, 0, 0,
-                    0, 1, 0, 0,
-                    0, 0, 1, 0,
-                    0, 0.5, 0, 1],
-                    render: steveHead,
-                    sibling: null,
-                    child: null
-                },
-                child: null
-            },
-            child: null
+          0.125, -0.25, 0, 1],
+          render: steveLeftLeg,
+          animation: {
+            ax: 50,
+            fx: 0.1,
+            ay: 0,
+            fy: 0,
+            az: 0,
+            fz: 0,
+          },
+          sibling: {
+            transform: [1, 0, 0, 0,
+              0, 1, 0, 0,
+              0, 0, 1, 0,
+              -0.125, -0.25, 0, 1],
+              render: steveRightLeg,
+              animation: {
+                ax: -50,
+                fx: 0.1,
+                ay: 0,
+                fy: 0,
+                az: 0,
+                fz: 0,
+              },
+              sibling: {
+                transform: [1, 0, 0, 0,
+                  0, 1, 0, 0,
+                  0, 0, 1, 0,
+                  0, 0.5, 0, 1],
+                  render: steveHead,
+                  animation: {
+                    ax: 0,
+                    fx: 0,
+                    ay: 0,
+                    fy: 0,
+                    az: 0,
+                    fz: 0,
+                  },
+                  sibling: null,
+                  child: null
+              },
+              child: null
           },
           child: null
       },
-      child: null
-    }
+      child: {
+        render: steveItem,
+        transform: [
+          0.5, 0 ,0, 0,
+          0, 0.5, 0, 0,
+          0, 0, 0.5, 0,
+          -0.1, -0.8, 0.2, 1
+        ],
+        child: null,
+        sibling: null,
+        animation: {
+          ax: 0,
+          fx: 0,
+          ay: 0,
+          fy: 0,
+          az: 180,
+          fz: 0.05,
+        }
+      }
+    },
+    child: null
+  }
 }
 
 //prettier-ignore
