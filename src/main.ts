@@ -25,7 +25,7 @@ import BumpFragmentShader from "./shaders/BumpFragmentShader.glsl";
 import BumpVertexShader from "./shaders/BumpVertexShader.glsl";
 import { steve, steveTexture } from "./models/steve";
 import { robo, roboTextur, roboTexture } from "./models/robo";
-import { robot } from "./models/robot";
+import { robot, robotDiffuse, robotNormal } from "./models/robot";
 
 const models: ModelNode[] = [steve, robo, robot];
 let currentModel = null;
@@ -242,7 +242,7 @@ const initModel = (model: Model | RobotModel) => {
       // Upload the canvas to the cubemap face.
       const level = 0;
       const internalFormat = gl.RGBA;
-      const width = 6;
+      const width = 64;
       const height = 64;
       const format = gl.RGBA;
       const types = gl.UNSIGNED_BYTE;
@@ -284,14 +284,13 @@ const initModel = (model: Model | RobotModel) => {
       gl.UNSIGNED_BYTE,
       new Uint8Array([255, 0, 0, 255])
     );
-    var img = new Image();
-    img.onload = function () {
+    const image = new Image();
+    image.src = robotDiffuse;
       gl.bindTexture(gl.TEXTURE_2D, texturesDiffuse);
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    };
-    img.src = "./models/bump_diffuse.png";
+    // prettier-ignore
 
     texturesNormal = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, texturesNormal);
@@ -306,14 +305,13 @@ const initModel = (model: Model | RobotModel) => {
       gl.UNSIGNED_BYTE,
       new Uint8Array([255, 0, 0, 255])
     );
-    var img = new Image();
-    img.onload = function () {
+    const images = new Image();
+    images.src = robotNormal;
       gl.bindTexture(gl.TEXTURE_2D, texturesNormal);
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, images);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    };
-    img.src = "./models/bump_normal.png";
+      // prettier-ignore
 
     positionBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
@@ -330,20 +328,11 @@ const initModel = (model: Model | RobotModel) => {
     bitangentBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, bitangentBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, model.bitangents, gl.STATIC_DRAW);
-
+    
+    
     texcoordBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, model.uv, gl.STATIC_DRAW);
-
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, texturesNormal);
-    uniformTextureNormal = gl.getUniformLocation(programObject, "tex_norm");
-    gl.uniform1i(uniformTextureNormal, 1);
-
-    gl.activeTexture(gl.TEXTURE1);
-    gl.bindTexture(gl.TEXTURE_2D, texturesDiffuse);
-    uniformTextureDiffuse = gl.getUniformLocation(programObject, "tex_diffuse");
-    gl.uniform1i(uniformTextureNormal, 1);
   }
 };
 
@@ -428,14 +417,28 @@ const initShaders = () => {
     gl.attachShader(programObject, vertexShader);
     gl.attachShader(programObject, fragmentShader);
 
+    gl.bindAttribLocation(programObject, 0, "model_mtx");
+    gl.bindAttribLocation(programObject, 1, "norm_mtx");
+    gl.bindAttribLocation(programObject, 2, "proj_mtx");
+    gl.linkProgram(programObject);
     uniformModel = gl.getUniformLocation(programObject, "model_mtx");
     uniformNormal = gl.getUniformLocation(programObject, "norm_mtx");
     uniformProjection = gl.getUniformLocation(programObject, "proj_mtx");
+    
 
     attr_pos = gl.getAttribLocation(programObject, "vert_pos");
     attr_tang = gl.getAttribLocation(programObject, "vert_tang");
     attr_bitang = gl.getAttribLocation(programObject, "vert_bitang");
     attr_uv = gl.getAttribLocation(programObject, "vert_uv");
+
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, texturesNormal);
+    uniformTextureNormal = gl.getUniformLocation(programObject, "tex_norm");
+    
+
+    gl.activeTexture(gl.TEXTURE1);
+    gl.bindTexture(gl.TEXTURE_2D, texturesDiffuse);
+    uniformTextureDiffuse = gl.getUniformLocation(programObject, "tex_diffuse");
   }
 };
 
@@ -607,6 +610,8 @@ const draw = (model: Model | RobotModel) => {
     gl.enableVertexAttribArray(attr_bitang);
     gl.enableVertexAttribArray(attr_uv);
 
+    gl.uniform1i(uniformTextureNormal, 0);
+    gl.uniform1i(uniformTextureDiffuse, 0);
     // gl.activeTexture(gl.TEXTURE0);
     // gl.bindTexture(gl.TEXTURE_2D, tex_norm);
     // var uni = gl.getUniformLocation(programObject, "tex_norm");
@@ -833,6 +838,11 @@ function main() {
       models[type] = copied;
     }
     if (type === 1) {
+      isAnimated && animation(models[type]);
+      drawScene();
+      models[type] = copied;
+    }
+    if (type === 2) {
       isAnimated && animation(models[type]);
       drawScene();
       models[type] = copied;
