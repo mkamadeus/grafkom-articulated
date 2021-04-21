@@ -155,17 +155,6 @@ const initModel = (model: Model) => {
 
     vbo = gl.createBuffer() as WebGLBuffer;
 
-    // Store cube vertex positions and colors
-    // gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
-    // gl.bufferData(
-    //   gl.ARRAY_BUFFER,
-    //   model.positions.byteLength + model.colors.byteLength + model.uv.byteLength,
-    //   gl.STATIC_DRAW
-    // );
-    // colorOffset = model.positions.byteLength;
-    // gl.bufferSubData(gl.ARRAY_BUFFER, 0, model.positions);
-    // gl.bufferSubData(gl.ARRAY_BUFFER, colorOffset, model.colors);
-
     // Store element triangle definition
     elementVbo = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, elementVbo);
@@ -190,11 +179,11 @@ const initModel = (model: Model) => {
   } else if (type == 1) {
     gl = gl as WebGLRenderingContext;
 
-    positionBuffer = gl.createBuffer() as WebGLBuffer;
+    positionBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, model.vertices, gl.STATIC_DRAW);
 
-    normalBuffer = gl.createBuffer();
+    normalBuffer = gl.createBuffer() ;
     gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, model.normal, gl.STATIC_DRAW);
 
@@ -233,8 +222,8 @@ const initModel = (model: Model) => {
       // Upload the canvas to the cubemap face.
       const level = 0;
       const internalFormat = gl.RGBA;
-      const width = 512;
-      const height = 64;
+      const width = 64;
+      const height = 6;
       const format = gl.RGBA;
       const types = gl.UNSIGNED_BYTE;
   
@@ -314,6 +303,7 @@ const initShaders = () => {
     texture3DLocation = gl.getUniformLocation(programObject, "u_texture_2");
     worldCameraPositionLocation = gl.getUniformLocation(programObject, "u_worldCameraPosition_2");
     viewLocation =  gl.getUniformLocation(programObject, "u_view_2");
+    window.requestAnimationFrame(drawScene)
   }
 };
 
@@ -419,8 +409,11 @@ const draw = (model: Model) => {
     gl.drawArrays(gl.TRIANGLES, numElements, gl.UNSIGNED_SHORT);
     
   } else if (type==1) {
+    
     gl = gl as WebGLRenderingContext;
-
+    // gl.enable(gl.CULL_FACE);
+    // gl.enable(gl.DEPTH_TEST);
+    // gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
     // Use WebGL Program
     gl.useProgram(programObject);
     
@@ -438,13 +431,15 @@ const draw = (model: Model) => {
       
     // console.log(projectionMatrix);
     // console.log(matrix);
-    
+    var aspect = gl.canvas.width / gl.canvas.height;
     let cameraPosition = [0, 0, cameraDistance];
+    projectionMatrix = multiplyMatrix(
+      getInverse(cameraMatrix),
+      getPerspectiveMatrix(60, aspect, near, far));
+      
+    console.log(projectionMatrix);
+    let viewMatrix = getInverse(cameraMatrix);
 
-  
-    // console.log(cameraMatrix)
-    // console.log(cameraPosition);
-  
     // Passing variable into the Shader Program
     gl.uniformMatrix4fv(worldLocation, false, matrix);
     gl.uniformMatrix4fv(projectionLocation, false, projectionMatrix);
@@ -453,6 +448,8 @@ const draw = (model: Model) => {
     // Tell the shader to use texture unit 0 for u_texture
     gl.uniform1i(texture3DLocation, 0);
 
+    // console.log(projectionMatrix);
+    
     // Draw the geometry.
     // Draw arrays with Triangle Fan Type
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
@@ -461,9 +458,8 @@ const draw = (model: Model) => {
     // }
     
     gl.drawArrays(gl.TRIANGLES, 0, 6 * 6);
-  
+    
   }
-  // calculateNormal(model);
 };
 
 const resetView = () => {
@@ -637,9 +633,15 @@ let currentFrame = 0;
 //     drawScene();
 //     models[type] = copied;
 //   }
+//   if (type === 1) {
+//     isAnimated && animation(models[type]);
+//     drawScene();
+//     models[type] = copied;
+//   }
 //   // const
 
 //   window.requestAnimationFrame(frameFunction);
 // };
-drawScene();
+// drawScene();
+window.requestAnimationFrame(drawScene)
 // window.requestAnimationFrame(frameFunction);
