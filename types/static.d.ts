@@ -31,6 +31,10 @@ interface ModelNode {
   child: ModelNode | null;
 }
 
+interface RobotModel extends Model{
+  tangents: Float32Array;
+  bitangents: Float32Array;
+}
 interface ModelAnimation {
   ax: number;
   fx: number;
