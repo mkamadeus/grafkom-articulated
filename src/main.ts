@@ -64,6 +64,8 @@ let uniformProjection : WebGLUniformLocation | null = null;
 // WebGL texture
 let texture: WebGLTexture | null = null;
 let textures: WebGLTexture | null = null;
+let texturesDepth: WebGLTexture | null = null;
+let texturesNormal: WebGLTexture | null = null;
 
 //Position Buffer
 let positionBuffer : WebGLBuffer | null = null;
@@ -355,17 +357,29 @@ const initModel = (model: Model | RobotModel) => {
     gl = gl as WebGLRenderingContext;
     vbo = gl.createBuffer() as WebGLBuffer;
 
-    textures = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, textures);
+    texturesDepth = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, texturesDepth);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([255, 0, 0, 255]));
     var img = new Image();
     img.onload = function() {
-        gl.bindTexture(gl.TEXTURE_2D, textures);
+        gl.bindTexture(gl.TEXTURE_2D, texturesDepth);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     }
-    img.src = "./models/wood.jpg";
+    img.src = "./models/bump_depth.png";
+
+    texturesNormal = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, texturesNormal);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([255, 0, 0, 255]));
+    var img = new Image();
+    img.onload = function() {
+        gl.bindTexture(gl.TEXTURE_2D, texturesNormal);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    }
+    img.src = "./models/bump_normal.png";
 
     positionBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
