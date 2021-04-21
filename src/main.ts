@@ -47,12 +47,12 @@ let matrixLocation: WebGLUniformLocation | null = null;
 let projectionMatrixLocation: WebGLUniformLocation | null = null;
 let textureLocation: WebGLUniformLocation | null = null;
 //WebGL uniform location Cube
-let projectionLocation: WebGLUniformLocation | null = null;
+let projection3DLocations: WebGLUniformLocation | null = null;
 let texture3DLocation: WebGLUniformLocation | null = null;
 
 let viewLocation: WebGLUniformLocation | null = null;
-let worldLocation: WebGLUniformLocation | null = null;
-let worldCameraPositionLocation: WebGLUniformLocation | null = null;
+let world3DLocations: WebGLUniformLocation | null = null;
+let world3DCameraPositionLocation: WebGLUniformLocation | null = null;
 
 // WebGL texture
 let texture: WebGLTexture | null = null;
@@ -222,8 +222,8 @@ const initModel = (model: Model) => {
       // Upload the canvas to the cubemap face.
       const level = 0;
       const internalFormat = gl.RGBA;
-      const width = 64;
-      const height = 6;
+      const width = 6;
+      const height = 64;
       const format = gl.RGBA;
       const types = gl.UNSIGNED_BYTE;
   
@@ -298,12 +298,12 @@ const initShaders = () => {
     positionLocation = gl.getAttribLocation(programObject, "a_position_2"); //positionLocation
     normalLocation = gl.getAttribLocation(programObject, "a_normal_2"); //Normal Location
     
-    worldLocation = gl.getUniformLocation(programObject, "u_world_2");
-    projectionLocation = gl.getUniformLocation(programObject, "u_projection_2");
+    world3DLocations = gl.getUniformLocation(programObject, "u_world_2");
+    projection3DLocations = gl.getUniformLocation(programObject, "u_projection_2");
     texture3DLocation = gl.getUniformLocation(programObject, "u_texture_2");
-    worldCameraPositionLocation = gl.getUniformLocation(programObject, "u_worldCameraPosition_2");
-    viewLocation =  gl.getUniformLocation(programObject, "u_view_2");
-    window.requestAnimationFrame(drawScene)
+    world3DCameraPositionLocation = gl.getUniformLocation(programObject, "u_worldCameraPosition_2");
+    // viewLocation =  gl.getUniformLocation(programObject, "u_view_2");
+
   }
 };
 
@@ -441,10 +441,10 @@ const draw = (model: Model) => {
     let viewMatrix = getInverse(cameraMatrix);
 
     // Passing variable into the Shader Program
-    gl.uniformMatrix4fv(worldLocation, false, matrix);
-    gl.uniformMatrix4fv(projectionLocation, false, projectionMatrix);
+    gl.uniformMatrix4fv(world3DLocations, false, matrix);
+    gl.uniformMatrix4fv(projection3DLocations, false, projectionMatrix);
     gl.uniformMatrix4fv(viewLocation, false, cameraMatrix);
-    gl.uniform3fv(worldCameraPositionLocation, cameraPosition);
+    gl.uniform3fv(world3DCameraPositionLocation, cameraPosition);
     // Tell the shader to use texture unit 0 for u_texture
     gl.uniform1i(texture3DLocation, 0);
 
