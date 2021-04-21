@@ -7,21 +7,11 @@
     <div class="container mx-auto p-6">
       <!-- HEADERS -->
       <div class="mb-4 text-center">
-        <h1 class="font-bold text-pink-400 text-6xl">Hollow Canvas</h1>
+        <h1 class="font-bold text-pink-400 text-6xl">Articulated Canvas</h1>
       </div>
 
       <!-- TOOLBOX, TRANSFORMATIONS -->
       <div class="flex justify-center text-pink-400">
-        <div>
-          <div class="flex items-center space-x-2 p-1">
-            <label for="near">near</label>
-            <input id="near" type="range" min="1" max="50" value="1" />
-          </div>
-          <div class="flex items-center space-x-2 p-1">
-            <label for="far">far</label>
-            <input id="far" type="range" min="1" max="50" value="50" />
-          </div>
-        </div>
         <div>
           <div class="flex items-center space-x-2 p-1">
             <label for="x-camera-rotation">x-cam-rot</label>
@@ -90,14 +80,28 @@
         <div class="flex space-x-1 mx-2">
           <button
             class="rounded py-1 px-2 text-white bg-pink-500"
-            id="toggle-shading"
+            id="toggle-animation"
           >
-            Toggle Shading
+            Toggle animation
           </button>
         </div>
         <div class="flex space-x-1 mx-2">
           <button class="rounded py-1 px-2 text-white bg-pink-500" id="reset">
             Reset
+          </button>
+        </div>
+        <div class="flex space-x-1 mx-2">
+          <button
+            class="rounded py-1 px-2 text-white bg-pink-500"
+            id="load-json"
+          >
+            Load JSON
+          </button>
+          <button
+            class="rounded py-1 px-2 text-white bg-pink-500"
+            id="save-json"
+          >
+            Save JSON
           </button>
         </div>
       </div>

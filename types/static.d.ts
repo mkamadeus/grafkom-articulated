@@ -26,11 +26,23 @@ interface Material {
 interface ModelNode {
   transform: number[];
   render: Model;
+  animation: ModelAnimation;
   sibling: ModelNode | null;
   child: ModelNode | null;
 }
 
+<<<<<<< HEAD
 interface RobotModel extends Model{
   tangents: Float32Array;
   bitangents: Float32Array;
 }
+=======
+interface ModelAnimation {
+  ax: number;
+  fx: number;
+  ay: number;
+  fy: number;
+  az: number;
+  fz: number;
+}
+>>>>>>> bb5d9d32dff503239167222e71abcff49aee3991
