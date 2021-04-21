@@ -27,7 +27,8 @@ import { steve, steveTexture } from "./models/steve";
 import { robo, roboTextur, roboTexture } from "./models/robo";
 import { robot, robotTexture } from "./models/robot";
 
-const models: ModelNode[] = [steve,robo, robot];
+const models: ModelNode[] = [steve, robo, robot];
+let currentModel = null;
 
 // WebGL objects
 var gl: WebGLRenderingContext | null = null;
@@ -58,11 +59,19 @@ let viewLocation: WebGLUniformLocation | null = null;
 let world3DLocations: WebGLUniformLocation | null = null;
 let world3DCameraPositionLocation: WebGLUniformLocation | null = null;
 
+<<<<<<< HEAD
 let uniformModel : WebGLUniformLocation | null = null;
 let uniformNormal : WebGLUniformLocation | null = null;
 let uniformProjection : WebGLUniformLocation | null = null;
 let uniformTextureNormal : WebGLUniformLocation | null = null;
 // let uniformTextureDiffuse : WebGLUniformLocation | null = null;
+=======
+let uniformModel: WebGLUniformLocation | null = null;
+let uniformNormal: WebGLUniformLocation | null = null;
+let uniformProjection: WebGLUniformLocation | null = null;
+let uniformTextureNormal: WebGLUniformLocation | null = null;
+let uniformTextureDiffuse: WebGLUniformLocation | null = null;
+>>>>>>> 91a03e60093f715c1473d687b55e67f6947ba4f2
 
 // WebGL texture
 let texture: WebGLTexture | null = null;
@@ -71,23 +80,22 @@ let textures: WebGLTexture | null = null;
 let texturesNormal: WebGLTexture | null = null;
 
 //Position Buffer
-let positionBuffer : WebGLBuffer | null = null;
-let normalBuffer : WebGLBuffer | null = null;
-let tangentBuffer : WebGLBuffer | null = null;
-let bitangentBuffer : WebGLBuffer | null = null;
+let positionBuffer: WebGLBuffer | null = null;
+let normalBuffer: WebGLBuffer | null = null;
+let tangentBuffer: WebGLBuffer | null = null;
+let bitangentBuffer: WebGLBuffer | null = null;
 
-let positionLocation : number ;
-let normalLocation : number;
-let cameraPosition : number;
-let attr_pos : number ;
-let attr_tang : number ;
-let attr_bitang : number ;
-let attr_uv : number ;
+let positionLocation: number;
+let normalLocation: number;
+let cameraPosition: number;
+let attr_pos: number;
+let attr_tang: number;
+let attr_bitang: number;
+let attr_uv: number;
 
 // Variables
 let matrix = Array(16).fill(0);
-let type: 0 | 1 | 2 =0;
-let shadingMode = 1;
+let type: 0 | 1 | 2 = 0;
 let projMode = 1;
 let near = 1;
 let far = 50;
@@ -112,7 +120,7 @@ let xTranslation = 0;
 let yTranslation = 0;
 let zTranslation = 0;
 
-// animation
+// Animation
 let isAnimated = false;
 
 /**
@@ -137,7 +145,6 @@ const resetCanvas = () => {
  * Draw scene
  */
 const drawScene = () => {
-  // calculateCameraProjection(near, far);
   calculateCameraProjection(near, far);
   drawObject(getIdentityMatrix(), models[type]);
 };
@@ -155,21 +162,15 @@ function drawObject(parentTransformation: number[], model: ModelNode) {
   if (model.child) drawObject(currentTransformation, model.child);
   if (model.sibling) drawObject(parentTransformation, model.sibling);
 
-  // calculateMatrix(model);
-  
   matrix = currentTransformation;
-  // console.log(matrix)
-  // console.log(model.render)
   draw(model.render);
-  
 }
 
 /**
  * Insert object model to WebGL buffers.
  */
 const initModel = (model: Model | RobotModel) => {
-
-  if (type==0) {
+  if (type == 0) {
     gl = gl as WebGLRenderingContext;
 
     vbo = gl.createBuffer() as WebGLBuffer;
@@ -184,14 +185,15 @@ const initModel = (model: Model | RobotModel) => {
     texcoordBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, model.uv, gl.STATIC_DRAW);
-    // numTexcoord = model.uv.length;
 
     // Create a texture.
     texture = gl.createTexture();
 
     // Asynchronously load an image
     const image = new Image();
-    image.src = steveTexture;
+    image.src = models[type].texture!;
+
+    // Bind image
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
     gl.generateMipmap(gl.TEXTURE_2D);
@@ -202,7 +204,7 @@ const initModel = (model: Model | RobotModel) => {
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, model.vertices, gl.STATIC_DRAW);
 
-    normalBuffer = gl.createBuffer() ;
+    normalBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, model.normal, gl.STATIC_DRAW);
 
@@ -235,9 +237,16 @@ const initModel = (model: Model | RobotModel) => {
         url: roboTexture,
       },
     ];
+    gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
+    gl.texParameteri(
+      gl.TEXTURE_CUBE_MAP,
+      gl.TEXTURE_MIN_FILTER,
+      gl.LINEAR_MIPMAP_LINEAR
+    );
     faceInfos.forEach((faceInfo) => {
-      const {target, url} = faceInfo;
-  
+      gl = gl as WebGLRenderingContext;
+      const { target, url } = faceInfo;
+
       // Upload the canvas to the cubemap face.
       const level = 0;
       const internalFormat = gl.RGBA;
@@ -245,27 +254,32 @@ const initModel = (model: Model | RobotModel) => {
       const height = 64;
       const format = gl.RGBA;
       const types = gl.UNSIGNED_BYTE;
-  
+
       // setup each face so it's immediately renderable
-      gl.texImage2D(target, level, internalFormat, width, height, 0, format, types, null);
-  
+      gl.texImage2D(
+        target,
+        level,
+        internalFormat,
+        width,
+        height,
+        0,
+        format,
+        types,
+        null
+      );
+
       // Asynchronously load an image
       const image = new Image();
       image.src = url;
-      image.onload = () => {
-        // Now that the image has loaded make copy it to the texture.
-        gl.bindTexture(gl.TEXTURE_CUBE_MAP, textures);
-        gl.texImage2D(target, level, internalFormat, format, types, image);
-        gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
-      };
+      gl.bindTexture(gl.TEXTURE_CUBE_MAP, textures);
+      gl.texImage2D(target, level, internalFormat, format, types, image);
+      gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
     });
-    gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
-    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
-  }
-  else if (type == 2) {
+  } else if (type == 2) {
     gl = gl as WebGLRenderingContext;
     vbo = gl.createBuffer() as WebGLBuffer;
 
+<<<<<<< HEAD
     // texturesDiffuse = gl.createTexture();
     // gl.bindTexture(gl.TEXTURE_2D, texturesDiffuse);
     // gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([255, 0, 0, 255]));
@@ -277,16 +291,59 @@ const initModel = (model: Model | RobotModel) => {
     //     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     // }
     // img.src = "./models/bump_diffuse.png";
+=======
+    texturesDiffuse = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, texturesDiffuse);
+    gl.texImage2D(
+      gl.TEXTURE_2D,
+      0,
+      gl.RGBA,
+      1,
+      1,
+      0,
+      gl.RGBA,
+      gl.UNSIGNED_BYTE,
+      new Uint8Array([255, 0, 0, 255])
+    );
+    var img = new Image();
+    img.onload = function () {
+      gl.bindTexture(gl.TEXTURE_2D, texturesDiffuse);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    };
+    img.src = "./models/bump_diffuse.png";
+>>>>>>> 91a03e60093f715c1473d687b55e67f6947ba4f2
 
     texturesNormal = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, texturesNormal);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([255, 0, 0, 255]));
+    gl.texImage2D(
+      gl.TEXTURE_2D,
+      0,
+      gl.RGBA,
+      1,
+      1,
+      0,
+      gl.RGBA,
+      gl.UNSIGNED_BYTE,
+      new Uint8Array([255, 0, 0, 255])
+    );
     var img = new Image();
+<<<<<<< HEAD
     gl.bindTexture(gl.TEXTURE_2D, texturesNormal);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     img.src = robotTexture;
+=======
+    img.onload = function () {
+      gl.bindTexture(gl.TEXTURE_2D, texturesNormal);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    };
+    img.src = "./models/bump_normal.png";
+>>>>>>> 91a03e60093f715c1473d687b55e67f6947ba4f2
 
     positionBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
@@ -316,17 +373,17 @@ const initModel = (model: Model | RobotModel) => {
 const initShaders = () => {
   gl = gl as WebGLRenderingContext;
 
-  if (type==0) {
+  if (type == 0) {
     const vertexShader = gl.createShader(gl.VERTEX_SHADER) as WebGLShader;
     gl.shaderSource(vertexShader, BodyVertexShader);
     gl.compileShader(vertexShader);
-  
+
     // Initialize body fragment shader
     const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER) as WebGLShader;
     gl.shaderSource(fragmentShader, BodyFragmentShader);
     gl.compileShader(fragmentShader);
     programObject = gl.createProgram() as WebGLProgram;
-    
+
     gl.attachShader(programObject, vertexShader);
     gl.attachShader(programObject, fragmentShader);
 
@@ -335,22 +392,25 @@ const initShaders = () => {
     gl.bindAttribLocation(programObject, 1, "a_texcoord");
     gl.linkProgram(programObject);
     matrixLocation = gl.getUniformLocation(programObject, "u_matrix");
-    projectionMatrixLocation = gl.getUniformLocation(programObject,"u_proj_matrix");
+    projectionMatrixLocation = gl.getUniformLocation(
+      programObject,
+      "u_proj_matrix"
+    );
     textureLocation = gl.getUniformLocation(programObject, "u_texture");
-  
-  } else if (type==1) {
-
+  } else if (type == 1) {
     const vertexShader3D = gl.createShader(gl.VERTEX_SHADER) as WebGLShader;
     gl.shaderSource(vertexShader3D, EnvironmentShader);
     gl.compileShader(vertexShader3D);
-    
-    const fragmentvertexShader3D = gl.createShader(gl.FRAGMENT_SHADER) as WebGLShader;
+
+    const fragmentvertexShader3D = gl.createShader(
+      gl.FRAGMENT_SHADER
+    ) as WebGLShader;
     gl.shaderSource(fragmentvertexShader3D, EnvironmentFragmentShader);
     gl.compileShader(fragmentvertexShader3D);
-    
+
     // Initialize shader program
     programObject = gl.createProgram() as WebGLProgram;
-    
+
     gl.attachShader(programObject, vertexShader3D);
     gl.attachShader(programObject, fragmentvertexShader3D);
 
@@ -362,15 +422,19 @@ const initShaders = () => {
     // look up where the vertex data needs to go.
     positionLocation = gl.getAttribLocation(programObject, "a_position_2"); //positionLocation
     normalLocation = gl.getAttribLocation(programObject, "a_normal_2"); //Normal Location
-    
+
     world3DLocations = gl.getUniformLocation(programObject, "u_world_2");
-    projection3DLocations = gl.getUniformLocation(programObject, "u_projection_2");
+    projection3DLocations = gl.getUniformLocation(
+      programObject,
+      "u_projection_2"
+    );
     texture3DLocation = gl.getUniformLocation(programObject, "u_texture_2");
-    world3DCameraPositionLocation = gl.getUniformLocation(programObject, "u_worldCameraPosition_2");
+    world3DCameraPositionLocation = gl.getUniformLocation(
+      programObject,
+      "u_worldCameraPosition_2"
+    );
     // viewLocation =  gl.getUniformLocation(programObject, "u_view_2");
-    
-  }
-  else if (type == 2) {
+  } else if (type == 2) {
     const vertexShader = gl.createShader(gl.VERTEX_SHADER) as WebGLShader;
     gl.shaderSource(vertexShader, BumpVertexShader);
     gl.compileShader(vertexShader);
@@ -476,11 +540,10 @@ const draw = (model: Model | RobotModel) => {
     gl.useProgram(programObject);
 
     // Retrieve buffers
-
     gl.enableVertexAttribArray(0);
     gl.bindBuffer(gl.ARRAY_BUFFER, elementVbo);
     gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
- 
+
     gl.enableVertexAttribArray(1);
     gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
     gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 0, 0);
@@ -495,37 +558,31 @@ const draw = (model: Model | RobotModel) => {
     // Bind and draw triangles
     gl.bindBuffer(gl.ARRAY_BUFFER, elementVbo);
     gl.drawArrays(gl.TRIANGLES, numElements, gl.UNSIGNED_SHORT);
-    
-  } else if (type==1) {
-    
+  } else if (type == 1) {
     gl = gl as WebGLRenderingContext;
     // gl.enable(gl.CULL_FACE);
     // gl.enable(gl.DEPTH_TEST);
     // gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
     // Use WebGL Program
     gl.useProgram(programObject);
-    
+
     // Turn on the position attribute
     gl.enableVertexAttribArray(positionLocation);
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-    gl.vertexAttribPointer(
-        positionLocation, 3, gl.FLOAT, false, 0, 0);
+    gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
 
     // Turn on the normal attribute
     gl.enableVertexAttribArray(normalLocation);
     gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
-    gl.vertexAttribPointer(
-        normalLocation, 3, gl.FLOAT, false, 0, 0);
-      
-    // console.log(projectionMatrix);
-    // console.log(matrix);
+    gl.vertexAttribPointer(normalLocation, 3, gl.FLOAT, false, 0, 0);
+
     var aspect = gl.canvas.width / gl.canvas.height;
     let cameraPosition = [0, 0, cameraDistance];
     projectionMatrix = multiplyMatrix(
       getInverse(cameraMatrix),
-      getPerspectiveMatrix(60, aspect, near, far));
-      
-    console.log(projectionMatrix);
+      getPerspectiveMatrix(60, aspect, near, far)
+    );
+
     let viewMatrix = getInverse(cameraMatrix);
 
     // Passing variable into the Shader Program
@@ -536,17 +593,14 @@ const draw = (model: Model | RobotModel) => {
     // Tell the shader to use texture unit 0 for u_texture
     gl.uniform1i(texture3DLocation, 0);
 
-    // console.log(projectionMatrix);
-    
     // Draw the geometry.
     // Draw arrays with Triangle Fan Type
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
     // for (let i =0; i < 6; i++) {
     //   gl.drawArrays(gl.TRIANGLE_FAN, 4*i, 4);
     // }
-    
+
     gl.drawArrays(gl.TRIANGLES, 0, 6 * 6);
-    
   }
   // calculateNormal(model);
   else if (type == 2) {
@@ -554,8 +608,19 @@ const draw = (model: Model | RobotModel) => {
     gl.useProgram(programObject);
 
     gl.uniformMatrix4fv(uniformModel, false, robot.transform);
-    gl.uniformMatrix4fv(uniformNormal, false, getTranspose(getInverse(robot.transform)));
-    gl.uniformMatrix4fv(uniformProjection, false, multiplyMatrix(getPerspectiveMatrix(45, 680.0/382.0, near, far), robot.transform));
+    gl.uniformMatrix4fv(
+      uniformNormal,
+      false,
+      getTranspose(getInverse(robot.transform))
+    );
+    gl.uniformMatrix4fv(
+      uniformProjection,
+      false,
+      multiplyMatrix(
+        getPerspectiveMatrix(45, 680.0 / 382.0, near, far),
+        robot.transform
+      )
+    );
 
     gl.enableVertexAttribArray(attr_pos);
     gl.enableVertexAttribArray(attr_tang);
@@ -588,8 +653,13 @@ const draw = (model: Model | RobotModel) => {
 
     gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
     gl.vertexAttribPointer(attr_uv, 2, gl.FLOAT, false, 0, 0);
+<<<<<<< HEAD
     
     gl.drawElements(gl.TRIANGLES, 6 * 6, gl.UNSIGNED_SHORT, 0);
+=======
+
+    gl.drawArrays(gl.TRIANGLES, numElements, gl.UNSIGNED_SHORT);
+>>>>>>> 91a03e60093f715c1473d687b55e67f6947ba4f2
   }
 };
 
@@ -611,6 +681,10 @@ const downloadObject = () => {
   a.click();
 };
 
+const loadObject = (objectString: string) => {
+  currentModel = JSON.parse(objectString);
+};
+
 // Camera position related inputs
 const xCameraRotationInput = document.getElementById(
   "x-camera-rotation"
@@ -626,6 +700,9 @@ const cameraDistanceInput = document.getElementById(
 const loadJsonButton = document.getElementById(
   "load-json"
 ) as HTMLButtonElement;
+const loadedJsonInput = document.getElementById(
+  "load-json-input"
+) as HTMLInputElement;
 const saveJsonButton = document.getElementById(
   "save-json"
 ) as HTMLButtonElement;
@@ -668,8 +745,22 @@ function initEvents() {
   yRotationCamera = yCameraRotationInput.valueAsNumber;
   cameraDistance = cameraDistanceInput.valueAsNumber;
 
+  // Set listener for upload button
+  loadJsonButton.addEventListener("click", (e) => {
+    console.log("asdasdasdasdasd");
+  });
+
+  loadedJsonInput.onchange = (e) => {
+    var reader = new FileReader();
+    reader.onload = (ev) => {
+      currentModel = JSON.parse(reader.result as string);
+      console.log(currentModel);
+    };
+    reader.readAsText((e.target as HTMLInputElement).files![0]);
+  };
+
   // Set listener for download button
-  loadJsonButton.addEventListener("click", downloadObject);
+  saveJsonButton.addEventListener("click", downloadObject);
 
   // Set listener for resetting view
   resetButton.addEventListener("click", resetView);
@@ -722,33 +813,31 @@ function initEvents() {
 }
 
 // Get Canvas
-
 function main() {
   const canvas = document.getElementById("webgl-canvas") as HTMLCanvasElement;
 
   const ratio = window.devicePixelRatio ? window.devicePixelRatio : 1;
   canvas.width = 1200 * ratio;
   canvas.height = 1200 * ratio;
-  
+
   gl = canvas.getContext("webgl");
   if (!gl) alert("Your browser/machine does not support WebGL!");
-  
+
   // Initialize stuff
   initCanvas();
   initShaders();
-  // initWireShaders();
   initEvents();
-  
+
   resetCanvas();
-  
+
   let currentFrame = 0;
   const frameFunction: FrameRequestCallback = () => {
     currentFrame++;
-  
+
     const animation = (m: ModelNode) => {
       if (m.child) animation(m.child);
       if (m.sibling) animation(m.sibling);
-  
+
       const { ax, fx, ay, fy, az, fz } = m.animation;
       m.transform = multiplyMatrix(
         getRotationMatrix(
@@ -759,11 +848,10 @@ function main() {
         m.transform
       );
     };
-  
+
     calculateCameraProjection(near, far);
     calculateCameraProjection(near, far);
     const copied = cloneDeep(models[type]);
-    // console.log(copied, models[type]);
     if (type === 0) {
       isAnimated && animation(models[type]);
       drawScene();
@@ -775,7 +863,7 @@ function main() {
       models[type] = copied;
     }
     // const
-  
+
     window.requestAnimationFrame(frameFunction);
   };
   // drawScene();

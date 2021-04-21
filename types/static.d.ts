@@ -29,9 +29,10 @@ interface ModelNode {
   animation: ModelAnimation;
   sibling: ModelNode | null;
   child: ModelNode | null;
+  texture?: string;
 }
 
-interface RobotModel extends Model{
+interface RobotModel extends Model {
   tangents: Float32Array;
   bitangents: Float32Array;
 }

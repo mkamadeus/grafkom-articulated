@@ -1,8 +1,8 @@
 import { crossVector, normalizeVector, subtractVector } from "./Vector3";
 
 export const degreesToRadians = (degree: number) => {
-  return degree * Math.PI / 180;
-}
+  return (degree * Math.PI) / 180;
+};
 
 export const getIdentityMatrix = () => {
   const arr = Array(16).fill(0);
@@ -33,45 +33,6 @@ export const multiplyMatrix = (m1: number[], m2: number[]): number[] => {
   return tmp;
 };
 
-// export const getInverse = (m: number[]) => {
-//   const det = getDeterminant(m);
-//   return getAdjugate(m).map((val) => val / det);
-// };
-
-// export const getAdjugate = (m: number[]) => {
-//   if (m.length !== 16) throw new Error("💀 Length not equal to 16!");
-
-//   const result = Array(16).fill(0);
-//   for (let i = 0; i < 16; i++) {
-//     const row = Math.floor(i / 4);
-//     const col = i % 4;
-//     const cofactor = m.filter(
-//       (_val, index) => !(row == Math.floor(index / 4) || col == index % 4)
-//     );
-//     // console.log(cofactor);
-//     result[i] = ((row + col) % 2 == 0 ? 1 : -1) * determinant3(cofactor);
-//   }
-
-//   // console.log("Adjugate: ", result);
-
-//   return result;
-// };
-
-// export const getDeterminant = (m: number[]) => {
-//   if (m.length !== 16) throw new Error("💀 Length not equal to 16!");
-
-//   let result = 0;
-//   for (let i = 0; i < 16; i++) {
-//     const row = Math.floor(i / 4);
-//     const col = i % 4;
-//     const cofactor = m.filter(
-//       (_val, index) => !(row == Math.floor(index / 4) || col == index % 4)
-//     );
-//     result += ((row + col) % 2 == 0 ? 1 : -1) * m[i] * determinant3(cofactor);
-//   }
-//   // console.log("Det: ", result);
-//   return result;
-// };
 export const getInverse = (m: number[]) => {
   var m00 = m[0 * 4 + 0];
   var m01 = m[0 * 4 + 1];
@@ -216,54 +177,6 @@ export const getTranspose = (m: number[]) => {
   return newM;
 };
 
-// export const transposeMatrix = ( m : number[][] ) =>
-// {
-    
-//   // var result = new Int32Array( m.length );
-
-//     var result : number[][] = [];
-//     for ( var i = 0; i < m.length; ++i ) {
-//         result.push( [] );
-//         for ( var j = 0; j < m[i].length; ++j ) {
-//             result[i].push( m[j][i] );
-//         }
-//     }
-//     return result;
-// }
-
-// export const getflatten = ( v: number[][] ) =>
-// {
-//     v = transposeMatrix( v );
-  
-
-//     var n = v.length;
-//     var elemsAreArrays = false;
-
-//     if ( Array.isArray(v[0]) ) {
-//         elemsAreArrays = true;
-//         n *= v[0].length;
-//     }
-
-//     var floats = new Float32Array( n );
-
-//     if ( elemsAreArrays ) {
-//         var idx = 0;
-//         for ( var i = 0; i < v.length; ++i ) {
-//             for ( var j = 0; j < v[i].length; ++j ) {
-//                 floats[idx++] = v[i][j];
-//             }
-//         }
-//     }
-//     else {
-//         for ( var i = 0; i < v.length; ++i ) {
-//           for ( var j = 0; j < v[i].length; ++j ) {
-//             floats[i] = v[i][j];
-//         }
-//     }
-
-//     return floats;
-// }
-
 export const determinant3 = (m: number[]) => {
   if (m.length !== 9) throw new Error("💀 Length not equal to 9!");
   return (
@@ -376,9 +289,9 @@ export const getOrthographicMatrix = (
   near: number,
   far: number
 ) => {
-  var a = right-left;
-  var b = top-bottom;
-  var c = far-near;
+  var a = right - left;
+  var b = top - bottom;
+  var c = far - near;
   return [
     2 / a,
     0,
@@ -394,73 +307,49 @@ export const getOrthographicMatrix = (
     0,
 
     -(left + right) / a,
-    -(bottom + top) /b,
+    -(bottom + top) / b,
     -(near + far) / c,
     1,
   ];
 };
 
-export const getObliqueMatrix = (
-  theta: number,
-  phi: number
-) => {
+export const getObliqueMatrix = (theta: number, phi: number) => {
   var t = degreesToRadians(theta);
   var p = degreesToRadians(phi);
-  var cotT = -1/Math.tan(t);
-  var cotP = -1/Math.tan(p);
-  return getTranspose([
-    1,
-    0,
-    cotT,
-    0,
-    0,
-    1,
-    cotP,
-    0,
-    0,
-    0,
-    1,
-    0,
-    0,
-    0,
-    0,
-    1
-  ]);
+  var cotT = -1 / Math.tan(t);
+  var cotP = -1 / Math.tan(p);
+  return getTranspose([1, 0, cotT, 0, 0, 1, cotP, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
+};
 
-}
-
-export const getxRotation= (
-  angleInRadians: number,
-  dst: number[]
-) => {
+export const getxRotation = (angleInRadians: number, dst: number[]) => {
   dst = dst || new Array(16);
   var c = Math.cos(angleInRadians);
   var s = Math.sin(angleInRadians);
 
-  dst[ 0] = 1;
-  dst[ 1] = 0;
-  dst[ 2] = 0;
-  dst[ 3] = 0;
-  dst[ 4] = 0;
-  dst[ 5] = c;
-  dst[ 6] = s;
-  dst[ 7] = 0;
-  dst[ 8] = 0;
-  dst[ 9] = -s;
+  dst[0] = 1;
+  dst[1] = 0;
+  dst[2] = 0;
+  dst[3] = 0;
+  dst[4] = 0;
+  dst[5] = c;
+  dst[6] = s;
+  dst[7] = 0;
+  dst[8] = 0;
+  dst[9] = -s;
   dst[10] = c;
   dst[11] = 0;
   dst[12] = 0;
   dst[13] = 0;
   dst[14] = 0;
   dst[15] = 1;
-  return dst
-}
+  return dst;
+};
 
 export const getyRotate = (
-  m : number[],
+  m: number[],
   angleInRadians: number,
   dst: number[]
-  ) => {
+) => {
   // this is the optimized version of
   // return multiply(m, yRotation(angleInRadians), dst);
   dst = dst || new Array(16);
@@ -476,24 +365,24 @@ export const getyRotate = (
   var c = Math.cos(angleInRadians);
   var s = Math.sin(angleInRadians);
 
-  dst[ 0] = c * m00 - s * m20;
-  dst[ 1] = c * m01 - s * m21;
-  dst[ 2] = c * m02 - s * m22;
-  dst[ 3] = c * m03 - s * m23;
-  dst[ 8] = c * m20 + s * m00;
-  dst[ 9] = c * m21 + s * m01;
+  dst[0] = c * m00 - s * m20;
+  dst[1] = c * m01 - s * m21;
+  dst[2] = c * m02 - s * m22;
+  dst[3] = c * m03 - s * m23;
+  dst[8] = c * m20 + s * m00;
+  dst[9] = c * m21 + s * m01;
   dst[10] = c * m22 + s * m02;
   dst[11] = c * m23 + s * m03;
 
   if (m !== dst) {
-    dst[ 4] = m[ 4];
-    dst[ 5] = m[ 5];
-    dst[ 6] = m[ 6];
-    dst[ 7] = m[ 7];
+    dst[4] = m[4];
+    dst[5] = m[5];
+    dst[6] = m[6];
+    dst[7] = m[7];
     dst[12] = m[12];
     dst[13] = m[13];
     dst[14] = m[14];
     dst[15] = m[15];
   }
-  return dst
-}
+  return dst;
+};

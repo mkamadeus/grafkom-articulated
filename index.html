@@ -92,10 +92,15 @@
         </div>
         <div class="flex space-x-1 mx-2">
           <button
-            class="rounded py-1 px-2 text-white bg-pink-500"
+            class="rounded py-1 px-2 text-white bg-pink-500 relative overflow-hidden inline-block"
             id="load-json"
           >
             Load JSON
+            <input
+              type="file"
+              id="load-json-input"
+              class="absolute top-0 left-0 opacity-0 cursor-pointer"
+            />
           </button>
           <button
             class="rounded py-1 px-2 text-white bg-pink-500"
