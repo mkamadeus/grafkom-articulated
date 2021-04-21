@@ -618,11 +618,13 @@ const draw = (model: Model | RobotModel) => {
       false,
       getTranspose(getInverse(robot.transform))
     );
+    var aspect = gl.canvas.width / gl.canvas.height;
+    
     gl.uniformMatrix4fv(
       uniformProjection,
       false,
       multiplyMatrix(
-        getPerspectiveMatrix(45, 680.0 / 382.0, near, far),
+        getPerspectiveMatrix(60, aspect, near, far),
         robot.transform
       )
     );
@@ -668,6 +670,7 @@ const draw = (model: Model | RobotModel) => {
     gl.vertexAttribPointer(attr_uv, 2, gl.FLOAT, false, 0, 0);
     
     gl.drawElements(gl.TRIANGLES, 6 * 6, gl.UNSIGNED_SHORT, 0);
+    
   }
 };
 
@@ -857,7 +860,7 @@ function main() {
       );
     };
 
-    calculateCameraProjection(near, far);
+    // calculateCameraProjection(near, far);
     calculateCameraProjection(near, far);
     const copied = cloneDeep(models[type]);
     if (type === 0) {
