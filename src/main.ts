@@ -10,6 +10,7 @@ import {
   getLookAt,
   getObliqueMatrix,
   getIdentityMatrix,
+  getTranspose,
   getxRotation,
   getyRotate,
 } from "./utils/Matrix4";
@@ -20,10 +21,13 @@ import EnvironmentShader from "./shaders/EnvironmentVertexShader.glsl";
 import EnvironmentFragmentShader from "./shaders/EnvironmentFragmentShader.glsl";
 import BodyVertexShader from "./shaders/BodyVertexShader.glsl";
 import BodyFragmentShader from "./shaders/BodyFragmentShader.glsl";
+import BumpFragmentShader from "./shaders/BumpFragmentShader.glsl";
+import BumpVertexShader from "./shaders/BumpVertexShader.glsl";
 import { steve, steveTexture } from "./models/steve";
 import { robo, roboTextur, roboTexture } from "./models/robo";
+import { robot } from "./models/robot";
 
-const models: ModelNode[] = [steve, robo];
+const models: ModelNode[] = [steve,robo, robot];
 
 // WebGL objects
 var gl: WebGLRenderingContext | null = null;
@@ -54,21 +58,35 @@ let viewLocation: WebGLUniformLocation | null = null;
 let world3DLocations: WebGLUniformLocation | null = null;
 let world3DCameraPositionLocation: WebGLUniformLocation | null = null;
 
+let uniformModel : WebGLUniformLocation | null = null;
+let uniformNormal : WebGLUniformLocation | null = null;
+let uniformProjection : WebGLUniformLocation | null = null;
+let uniformTextureNormal : WebGLUniformLocation | null = null;
+let uniformTextureDiffuse : WebGLUniformLocation | null = null;
+
 // WebGL texture
 let texture: WebGLTexture | null = null;
 let textures: WebGLTexture | null = null;
+let texturesDiffuse: WebGLTexture | null = null;
+let texturesNormal: WebGLTexture | null = null;
 
 //Position Buffer
-let positionBuffer: WebGLBuffer | null = null;
-let normalBuffer: WebGLBuffer | null = null;
+let positionBuffer : WebGLBuffer | null = null;
+let normalBuffer : WebGLBuffer | null = null;
+let tangentBuffer : WebGLBuffer | null = null;
+let bitangentBuffer : WebGLBuffer | null = null;
 
 let positionLocation : number ;
 let normalLocation : number;
 let cameraPosition : number;
+let attr_pos : number ;
+let attr_tang : number ;
+let attr_bitang : number ;
+let attr_uv : number ;
 
 // Variables
 let matrix = Array(16).fill(0);
-let type: 0 | 1 | 2 = 1;
+let type: 0 | 1 | 2 = 2;
 let shadingMode = 1;
 let projMode = 1;
 let near = 1;
@@ -149,8 +167,9 @@ function drawObject(parentTransformation: number[], model: ModelNode) {
 /**
  * Insert object model to WebGL buffers.
  */
-const initModel = (model: Model) => {
-  if (type == 0) {
+const initModel = (model: Model | RobotModel) => {
+
+  if (type==0) {
     gl = gl as WebGLRenderingContext;
 
     vbo = gl.createBuffer() as WebGLBuffer;
@@ -243,6 +262,64 @@ const initModel = (model: Model) => {
     gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
     gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
   }
+  else if (type == 2) {
+    gl = gl as WebGLRenderingContext;
+    vbo = gl.createBuffer() as WebGLBuffer;
+
+    texturesDiffuse = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, texturesDiffuse);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([255, 0, 0, 255]));
+    var img = new Image();
+    img.onload = function() {
+        gl.bindTexture(gl.TEXTURE_2D, texturesDiffuse);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    }
+    img.src = "./models/bump_diffuse.png";
+
+    texturesNormal = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, texturesNormal);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([255, 0, 0, 255]));
+    var img = new Image();
+    img.onload = function() {
+        gl.bindTexture(gl.TEXTURE_2D, texturesNormal);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    }
+    img.src = "./models/bump_normal.png";
+
+    positionBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, model.vertices, gl.STATIC_DRAW);
+
+    normalBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, model.normal, gl.STATIC_DRAW);
+
+    tangentBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, tangentBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, model.tangents, gl.STATIC_DRAW);
+
+    bitangentBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, bitangentBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, model.bitangents, gl.STATIC_DRAW);
+
+    texcoordBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, model.uv, gl.STATIC_DRAW);
+
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, texturesNormal);
+    uniformTextureNormal = gl.getUniformLocation(programObject, "tex_norm");
+    gl.uniform1i(uniformTextureNormal, 1);
+
+    gl.activeTexture(gl.TEXTURE1);
+    gl.bindTexture(gl.TEXTURE_2D, texturesDiffuse);
+    uniformTextureDiffuse = gl.getUniformLocation(programObject, "tex_diffuse");
+    gl.uniform1i(uniformTextureNormal, 1);
+  }
 };
 
 /**
@@ -303,7 +380,30 @@ const initShaders = () => {
     texture3DLocation = gl.getUniformLocation(programObject, "u_texture_2");
     world3DCameraPositionLocation = gl.getUniformLocation(programObject, "u_worldCameraPosition_2");
     // viewLocation =  gl.getUniformLocation(programObject, "u_view_2");
+    
+  }
+  else if (type == 2) {
+    const vertexShader = gl.createShader(gl.VERTEX_SHADER) as WebGLShader;
+    gl.shaderSource(vertexShader, BumpVertexShader);
+    gl.compileShader(vertexShader);
 
+    const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER) as WebGLShader;
+    gl.shaderSource(fragmentShader, BumpFragmentShader);
+    gl.compileShader(fragmentShader);
+
+    programObject = gl.createProgram() as WebGLProgram;
+
+    gl.attachShader(programObject, vertexShader);
+    gl.attachShader(programObject, fragmentShader);
+
+    uniformModel = gl.getUniformLocation(programObject, "model_mtx");
+    uniformNormal = gl.getUniformLocation(programObject, "norm_mtx");
+    uniformProjection = gl.getUniformLocation(programObject, "proj_mtx");
+
+    attr_pos = gl.getAttribLocation(programObject, "vert_pos");
+    attr_tang = gl.getAttribLocation(programObject, "vert_tang");
+    attr_bitang = gl.getAttribLocation(programObject, "vert_bitang");
+    attr_uv = gl.getAttribLocation(programObject, "vert_uv");
   }
 };
 
@@ -378,7 +478,7 @@ const calculateCameraProjection = (near: number, far: number) => {
 /**
  * Draw model object.
  */
-const draw = (model: Model) => {
+const draw = (model: Model | RobotModel) => {
   initModel(model);
 
   if (type == 0) {
@@ -459,6 +559,49 @@ const draw = (model: Model) => {
     
     gl.drawArrays(gl.TRIANGLES, 0, 6 * 6);
     
+  }
+  // calculateNormal(model);
+  else if (type == 2) {
+    gl = gl as WebGLRenderingContext;
+    gl.useProgram(programObject);
+
+    gl.uniformMatrix4fv(uniformModel, false, robot.transform);
+    gl.uniformMatrix4fv(uniformNormal, false, getTranspose(getInverse(robot.transform)));
+    gl.uniformMatrix4fv(uniformProjection, false, multiplyMatrix(getPerspectiveMatrix(45, 680.0/382.0, near, far), robot.transform));
+
+    gl.enableVertexAttribArray(attr_pos);
+    gl.enableVertexAttribArray(attr_tang);
+    gl.enableVertexAttribArray(attr_bitang);
+    gl.enableVertexAttribArray(attr_uv);
+
+    // gl.activeTexture(gl.TEXTURE0);
+    // gl.bindTexture(gl.TEXTURE_2D, tex_norm);
+    // var uni = gl.getUniformLocation(programObject, "tex_norm");
+    // gl.uniform1i(uni, 0);
+
+    // gl.activeTexture(gl.TEXTURE1);
+    // gl.bindTexture(gl.TEXTURE_2D, tex_diffuse);
+    // var uni = gl.getUniformLocation(programObject, "tex_diffuse");
+    // gl.uniform1i(uni, 1);
+
+    // gl.activeTexture(gl.TEXTURE2);
+    // gl.bindTexture(gl.TEXTURE_2D, tex_depth);
+    // var uni = gl.getUniformLocation(programObject, "tex_depth");
+    // gl.uniform1i(uni, 2);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+    gl.vertexAttribPointer(attr_pos, 3, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, tangentBuffer);
+    gl.vertexAttribPointer(attr_tang, 3, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, bitangentBuffer);
+    gl.vertexAttribPointer(attr_bitang, 3, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
+    gl.vertexAttribPointer(attr_uv, 2, gl.FLOAT, false, 0, 0);
+    
+    gl.drawArrays(gl.TRIANGLES, numElements, gl.UNSIGNED_SHORT);
   }
 };
 
