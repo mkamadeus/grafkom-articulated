@@ -68,7 +68,7 @@ let cameraPosition : number;
 
 // Variables
 let matrix = Array(16).fill(0);
-let type: 0 | 1 | 2 = 1;
+let type: 0 | 1 | 2 =0;
 let shadingMode = 1;
 let projMode = 1;
 let near = 1;
@@ -546,12 +546,15 @@ function initEvents() {
   // Set listener for changing models
   model1Button.addEventListener("click", () => {
     type = 0;
+    main();
   });
   model2Button.addEventListener("click", () => {
     type = 1;
+    main();
   });
   model3Button.addEventListener("click", () => {
     type = 2;
+    main();
   });
 
   // Set listener for changing view mode
@@ -588,60 +591,64 @@ function initEvents() {
 }
 
 // Get Canvas
-const canvas = document.getElementById("webgl-canvas") as HTMLCanvasElement;
 
-const ratio = window.devicePixelRatio ? window.devicePixelRatio : 1;
-canvas.width = 1200 * ratio;
-canvas.height = 1200 * ratio;
+function main() {
+  const canvas = document.getElementById("webgl-canvas") as HTMLCanvasElement;
 
-gl = canvas.getContext("webgl");
-if (!gl) alert("Your browser/machine does not support WebGL!");
-
-// Initialize stuff
-initCanvas();
-initShaders();
-// initWireShaders();
-initEvents();
-
-resetCanvas();
-
-let currentFrame = 0;
-const frameFunction: FrameRequestCallback = () => {
-  currentFrame++;
-
-  const animation = (m: ModelNode) => {
-    if (m.child) animation(m.child);
-    if (m.sibling) animation(m.sibling);
-
-    const { ax, fx, ay, fy, az, fz } = m.animation;
-    m.transform = multiplyMatrix(
-      getRotationMatrix(
-        ax * Math.sin(fx * currentFrame),
-        ay * Math.sin(fy * currentFrame),
-        az * Math.sin(fz * currentFrame)
-      ),
-      m.transform
-    );
+  const ratio = window.devicePixelRatio ? window.devicePixelRatio : 1;
+  canvas.width = 1200 * ratio;
+  canvas.height = 1200 * ratio;
+  
+  gl = canvas.getContext("webgl");
+  if (!gl) alert("Your browser/machine does not support WebGL!");
+  
+  // Initialize stuff
+  initCanvas();
+  initShaders();
+  // initWireShaders();
+  initEvents();
+  
+  resetCanvas();
+  
+  let currentFrame = 0;
+  const frameFunction: FrameRequestCallback = () => {
+    currentFrame++;
+  
+    const animation = (m: ModelNode) => {
+      if (m.child) animation(m.child);
+      if (m.sibling) animation(m.sibling);
+  
+      const { ax, fx, ay, fy, az, fz } = m.animation;
+      m.transform = multiplyMatrix(
+        getRotationMatrix(
+          ax * Math.sin(fx * currentFrame),
+          ay * Math.sin(fy * currentFrame),
+          az * Math.sin(fz * currentFrame)
+        ),
+        m.transform
+      );
+    };
+  
+    calculateCameraProjection(near, far);
+    calculateCameraProjection(near, far);
+    const copied = cloneDeep(models[type]);
+    // console.log(copied, models[type]);
+    if (type === 0) {
+      isAnimated && animation(models[type]);
+      drawScene();
+      models[type] = copied;
+    }
+    if (type === 1) {
+      isAnimated && animation(models[type]);
+      drawScene();
+      models[type] = copied;
+    }
+    // const
+  
+    window.requestAnimationFrame(frameFunction);
   };
-
-  calculateCameraProjection(near, far);
-  calculateCameraProjection(near, far);
-  const copied = cloneDeep(models[type]);
-  // console.log(copied, models[type]);
-  if (type === 0) {
-    isAnimated && animation(models[type]);
-    drawScene();
-    models[type] = copied;
-  }
-  if (type === 1) {
-    isAnimated && animation(models[type]);
-    drawScene();
-    models[type] = copied;
-  }
-  // const
-
+  // drawScene();
+  // window.requestAnimationFrame(drawScene)
   window.requestAnimationFrame(frameFunction);
-};
-// drawScene();
-// window.requestAnimationFrame(drawScene)
-window.requestAnimationFrame(frameFunction);
+}
+main();
