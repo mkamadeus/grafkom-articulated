@@ -216,6 +216,54 @@ export const getTranspose = (m: number[]) => {
   return newM;
 };
 
+// export const transposeMatrix = ( m : number[][] ) =>
+// {
+    
+//   // var result = new Int32Array( m.length );
+
+//     var result : number[][] = [];
+//     for ( var i = 0; i < m.length; ++i ) {
+//         result.push( [] );
+//         for ( var j = 0; j < m[i].length; ++j ) {
+//             result[i].push( m[j][i] );
+//         }
+//     }
+//     return result;
+// }
+
+// export const getflatten = ( v: number[][] ) =>
+// {
+//     v = transposeMatrix( v );
+  
+
+//     var n = v.length;
+//     var elemsAreArrays = false;
+
+//     if ( Array.isArray(v[0]) ) {
+//         elemsAreArrays = true;
+//         n *= v[0].length;
+//     }
+
+//     var floats = new Float32Array( n );
+
+//     if ( elemsAreArrays ) {
+//         var idx = 0;
+//         for ( var i = 0; i < v.length; ++i ) {
+//             for ( var j = 0; j < v[i].length; ++j ) {
+//                 floats[idx++] = v[i][j];
+//             }
+//         }
+//     }
+//     else {
+//         for ( var i = 0; i < v.length; ++i ) {
+//           for ( var j = 0; j < v[i].length; ++j ) {
+//             floats[i] = v[i][j];
+//         }
+//     }
+
+//     return floats;
+// }
+
 export const determinant3 = (m: number[]) => {
   if (m.length !== 9) throw new Error("💀 Length not equal to 9!");
   return (
