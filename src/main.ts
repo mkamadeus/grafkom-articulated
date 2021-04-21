@@ -606,42 +606,42 @@ initEvents();
 resetCanvas();
 
 let currentFrame = 0;
-// const frameFunction: FrameRequestCallback = () => {
-//   currentFrame++;
+const frameFunction: FrameRequestCallback = () => {
+  currentFrame++;
 
-//   const animation = (m: ModelNode) => {
-//     if (m.child) animation(m.child);
-//     if (m.sibling) animation(m.sibling);
+  const animation = (m: ModelNode) => {
+    if (m.child) animation(m.child);
+    if (m.sibling) animation(m.sibling);
 
-//     const { ax, fx, ay, fy, az, fz } = m.animation;
-//     m.transform = multiplyMatrix(
-//       getRotationMatrix(
-//         ax * Math.sin(fx * currentFrame),
-//         ay * Math.sin(fy * currentFrame),
-//         az * Math.sin(fz * currentFrame)
-//       ),
-//       m.transform
-//     );
-//   };
+    const { ax, fx, ay, fy, az, fz } = m.animation;
+    m.transform = multiplyMatrix(
+      getRotationMatrix(
+        ax * Math.sin(fx * currentFrame),
+        ay * Math.sin(fy * currentFrame),
+        az * Math.sin(fz * currentFrame)
+      ),
+      m.transform
+    );
+  };
 
-//   calculateCameraProjection(near, far);
-//   calculateCameraProjection(near, far);
-//   const copied = cloneDeep(models[type]);
-//   // console.log(copied, models[type]);
-//   if (type === 0) {
-//     isAnimated && animation(models[type]);
-//     drawScene();
-//     models[type] = copied;
-//   }
-//   if (type === 1) {
-//     isAnimated && animation(models[type]);
-//     drawScene();
-//     models[type] = copied;
-//   }
-//   // const
+  calculateCameraProjection(near, far);
+  calculateCameraProjection(near, far);
+  const copied = cloneDeep(models[type]);
+  // console.log(copied, models[type]);
+  if (type === 0) {
+    isAnimated && animation(models[type]);
+    drawScene();
+    models[type] = copied;
+  }
+  if (type === 1) {
+    isAnimated && animation(models[type]);
+    drawScene();
+    models[type] = copied;
+  }
+  // const
 
-//   window.requestAnimationFrame(frameFunction);
-// };
+  window.requestAnimationFrame(frameFunction);
+};
 // drawScene();
-window.requestAnimationFrame(drawScene)
-// window.requestAnimationFrame(frameFunction);
+// window.requestAnimationFrame(drawScene)
+window.requestAnimationFrame(frameFunction);

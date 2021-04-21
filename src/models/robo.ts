@@ -960,55 +960,154 @@ export const roboHead : Model = {
 }
 
 // prettier-ignore
+
+
 export const robo : ModelNode = {
   transform: [1, 0, 0, 0,
-    0, 1, 0, 0,
-    0, 0, 1, 0,
-    0, 0, 0, 1],
-    render: roboTorso,
-    sibling: null,
-    child: {
-      transform: [1, 0, 0, 0,
         0, 1, 0, 0,
         0, 0, 1, 0,
-        0.5, 0.375, 0, 1],
-      render: roboLeftArm,
+        0, 0, 0, 1],
+  render: roboTorso,
+  sibling: null,
+  animation: {
+    ax: 0,
+    fx: 0,
+    ay: -5,
+    fy: 0.1,
+    az: -1.5,
+    fz: 0.1,
+  },
+  child: {
+    transform: [1, 0, 0, 0,
+              0, 1, 0, 0,
+              0, 0, 1, 0,
+              0.45, 0.375, 0, 1],
+    render: roboLeftArm,
+    animation: {
+      ax: -50,
+      fx: 0.1,
+      ay: 0,
+      fy: 0,
+      az: 0,
+      fz: 0,
+    },
+    sibling: {
+      transform: [1, 0, 0, 0,
+                  0, 1, 0, 0,
+                  0, 0, 1, 0,
+                  -0.45, 0.375, 0, 1],
+      render: roboRightArm,
+      animation: {
+        ax: 50,
+        fx: 0.1,
+        ay: 0,
+        fy: 0,
+        az: 0,
+        fz: 0,
+      },
       sibling: {
         transform: [1, 0, 0, 0,
-          0, 1, 0, 0,
-          0, 0, 1, 0,
-          -0.5, 0.375, 0, 1],
-        render: roboRightArm,
-        sibling: {
-          transform: [1, 0, 0, 0,
-            0, 1, 0, 0,
-            0, 0, 1, 0,
-            0.5, -0.5, 0, 1],
-            render: roboLeftLeg,
-            sibling: {
-              transform: [1, 0, 0, 0,
-                0, 1, 0, 0,
-                0, 0, 1, 0,
-                -0.5, -0.5, 0, 1],
-                render: roboRightLeg,
-                sibling: {
-                  transform: [1, 0, 0, 0,
                     0, 1, 0, 0,
                     0, 0, 1, 0,
-                    0, 0.5, 0, 1],
-                    render: roboHead,
-                    sibling: null,
-                    child: null
-                },
-                child: null
-            },
-            child: null
+                    0.5, -0.5, 0, 1],
+          render: roboLeftLeg,
+          animation: {
+            ax: 50,
+            fx: 0.1,
+            ay: 0,
+            fy: 0,
+            az: 0,
+            fz: 0,
+          },
+          sibling: {
+            transform: [1, 0, 0, 0,
+                        0, 1, 0, 0,
+                        0, 0, 1, 0,
+                        -0.5, -0.5, 0, 1],
+              render: roboRightLeg,
+              animation: {
+                ax: -50,
+                fx: 0.1,
+                ay: 0,
+                fy: 0,
+                az: 0,
+                fz: 0,
+              },
+              sibling: {
+                transform: [1, 0, 0, 0,
+                            0, 1, 0, 0,
+                            0, 0, 1, 0,
+                            0, 0.5, 0, 1],
+                  render: roboHead,
+                  animation: {
+                    ax: 0,
+                    fx: 0,
+                    ay: 0,
+                    fy: 0,
+                    az: 0,
+                    fz: 0,
+                  },
+                  sibling: null,
+                  child: null
+              },
+              child: null
           },
           child: null
       },
       child: null
-    }
+    },
+    child: null
+  }
 }
+// export const robo : ModelNode = {
+//   transform: [1, 0, 0, 0,
+//     0, 1, 0, 0,
+//     0, 0, 1, 0,
+//     0, 0, 0, 1],
+//     render: roboTorso,
+//     sibling: null,
+//     child: {
+//       transform: [1, 0, 0, 0,
+//         0, 1, 0, 0,
+//         0, 0, 1, 0,
+//         0.5, 0.375, 0, 1],
+//       render: roboLeftArm,
+//       sibling: {
+//         transform: [1, 0, 0, 0,
+//           0, 1, 0, 0,
+//           0, 0, 1, 0,
+//           -0.5, 0.375, 0, 1],
+//         render: roboRightArm,
+//         sibling: {
+//           transform: [1, 0, 0, 0,
+//             0, 1, 0, 0,
+//             0, 0, 1, 0,
+//             0.5, -0.5, 0, 1],
+//             render: roboLeftLeg,
+//             sibling: {
+//               transform: [1, 0, 0, 0,
+//                 0, 1, 0, 0,
+//                 0, 0, 1, 0,
+//                 -0.5, -0.5, 0, 1],
+//                 render: roboRightLeg,
+//                 sibling: {
+//                   transform: [1, 0, 0, 0,
+//                     0, 1, 0, 0,
+//                     0, 0, 1, 0,
+//                     0, 0.5, 0, 1],
+//                     render: roboHead,
+//                     sibling: null,
+//                     child: null
+//                 },
+//                 child: null
+//             },
+//             child: null
+//           },
+//           child: null
+//       },
+//       child: null
+//     }
+// }
 
 //prettier-ignore
 export const roboTextur = './background.jpg'
