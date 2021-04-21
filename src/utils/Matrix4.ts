@@ -33,10 +33,10 @@ export const multiplyMatrix = (m1: number[], m2: number[]): number[] => {
   return tmp;
 };
 
-export const getInverse = (m: number[]) => {
-  const det = getDeterminant(m);
-  return getAdjugate(m).map((val) => val / det);
-};
+// export const getInverse = (m: number[]) => {
+//   const det = getDeterminant(m);
+//   return getAdjugate(m).map((val) => val / det);
+// };
 
 // export const getAdjugate = (m: number[]) => {
 //   if (m.length !== 16) throw new Error("💀 Length not equal to 16!");
