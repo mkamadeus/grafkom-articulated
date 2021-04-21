@@ -271,6 +271,19 @@ const initModel = (model: Model | RobotModel) => {
     gl = gl as WebGLRenderingContext;
     vbo = gl.createBuffer() as WebGLBuffer;
 
+
+    // texturesDiffuse = gl.createTexture();
+    // gl.bindTexture(gl.TEXTURE_2D, texturesDiffuse);
+    // gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([255, 0, 0, 255]));
+    // var img = new Image();
+    // img.onload = function() {
+    //     gl.bindTexture(gl.TEXTURE_2D, texturesDiffuse);
+    //     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+    //     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    //     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    // }
+    // img.src = "./models/bump_diffuse.png";
+
     texturesDiffuse = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, texturesDiffuse);
     gl.texImage2D(
@@ -290,7 +303,7 @@ const initModel = (model: Model | RobotModel) => {
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    // prettier-ignore
+
 
     texturesNormal = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, texturesNormal);
@@ -307,11 +320,20 @@ const initModel = (model: Model | RobotModel) => {
     );
     const images = new Image();
     images.src = robotNormal;
+
+    var img = new Image();
+    img.src = robotDiffuse;
+
+    gl.bindTexture(gl.TEXTURE_2D, texturesNormal);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    
       gl.bindTexture(gl.TEXTURE_2D, texturesNormal);
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, images);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-      // prettier-ignore
+
 
     positionBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
@@ -616,6 +638,12 @@ const draw = (model: Model | RobotModel) => {
     // gl.bindTexture(gl.TEXTURE_2D, tex_norm);
     // var uni = gl.getUniformLocation(programObject, "tex_norm");
     // gl.uniform1i(uni, 0);
+// =======
+//     gl.activeTexture(gl.TEXTURE0);
+//     gl.bindTexture(gl.TEXTURE_2D, texturesNormal);
+//     var uni = gl.getUniformLocation(programObject, "tex_norm");
+//     gl.uniform1i(uni, 0);
+// >>>>>>> 491218e0e37877c5e8b6b97bdccb05747e5c3268
 
     // gl.activeTexture(gl.TEXTURE1);
     // gl.bindTexture(gl.TEXTURE_2D, tex_diffuse);
@@ -638,8 +666,8 @@ const draw = (model: Model | RobotModel) => {
 
     gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
     gl.vertexAttribPointer(attr_uv, 2, gl.FLOAT, false, 0, 0);
-
-    gl.drawArrays(gl.TRIANGLES, numElements, gl.UNSIGNED_SHORT);
+    
+    gl.drawElements(gl.TRIANGLES, 6 * 6, gl.UNSIGNED_SHORT, 0);
   }
 };
 

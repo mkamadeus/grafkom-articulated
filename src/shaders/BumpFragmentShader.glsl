@@ -1,7 +1,7 @@
 precision highp float;
 
 uniform sampler2D tex_norm;
-uniform sampler2D tex_diffuse;
+//uniform sampler2D tex_diffuse;
 
 varying vec2 frag_uv;
 varying vec3 ts_light_pos;
