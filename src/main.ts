@@ -10,6 +10,7 @@ import {
   getLookAt,
   getObliqueMatrix,
   getIdentityMatrix,
+  getTranspose,
   getxRotation,
   getyRotate,
 } from "./utils/Matrix4";
@@ -60,11 +61,13 @@ let worldCameraPositionLocation: WebGLUniformLocation | null = null;
 let uniformModel : WebGLUniformLocation | null = null;
 let uniformNormal : WebGLUniformLocation | null = null;
 let uniformProjection : WebGLUniformLocation | null = null;
+let uniformTextureNormal : WebGLUniformLocation | null = null;
+let uniformTextureDiffuse : WebGLUniformLocation | null = null;
 
 // WebGL texture
 let texture: WebGLTexture | null = null;
 let textures: WebGLTexture | null = null;
-let texturesDepth: WebGLTexture | null = null;
+let texturesDiffuse: WebGLTexture | null = null;
 let texturesNormal: WebGLTexture | null = null;
 
 //Position Buffer
@@ -357,17 +360,17 @@ const initModel = (model: Model | RobotModel) => {
     gl = gl as WebGLRenderingContext;
     vbo = gl.createBuffer() as WebGLBuffer;
 
-    texturesDepth = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, texturesDepth);
+    texturesDiffuse = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, texturesDiffuse);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([255, 0, 0, 255]));
     var img = new Image();
     img.onload = function() {
-        gl.bindTexture(gl.TEXTURE_2D, texturesDepth);
+        gl.bindTexture(gl.TEXTURE_2D, texturesDiffuse);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     }
-    img.src = "./models/bump_depth.png";
+    img.src = "./models/bump_diffuse.png";
 
     texturesNormal = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, texturesNormal);
@@ -401,10 +404,15 @@ const initModel = (model: Model | RobotModel) => {
     gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, model.uv, gl.STATIC_DRAW);
 
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, texturesNormal);
+    uniformTextureNormal = gl.getUniformLocation(programObject, "tex_norm");
+    gl.uniform1i(uniformTextureNormal, 1);
+
     gl.activeTexture(gl.TEXTURE1);
-    gl.bindTexture(gl.TEXTURE_2D, textures);
-    var uni = gl.getUniformLocation(programObject, "tex_diffuse");
-    gl.uniform1i(uni, 1);
+    gl.bindTexture(gl.TEXTURE_2D, texturesDiffuse);
+    uniformTextureDiffuse = gl.getUniformLocation(programObject, "tex_diffuse");
+    gl.uniform1i(uniformTextureNormal, 1);
   }
 };
 

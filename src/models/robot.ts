@@ -1385,9 +1385,25 @@ export const robot : ModelNode = {
                 0, 0, 0, 1,],
                 render: robotRightArm,
                 sibling: null,
-                child: null
+                child: null,
+                animation: {
+                    ax: 50,
+                    fx: 0.1,
+                    ay: 0,
+                    fy: 0,
+                    az: 0,
+                    fz: 0,
+                },
             },
-            child: null
+            child: null,
+            animation: {
+                ax: -50,
+                fx: 0.1,
+                ay: 0,
+                fy: 0,
+                az: 0,
+                fz: 0,
+            },
         },
         child: {
             transform: [1, 0, 0, 0,
@@ -1396,7 +1412,31 @@ export const robot : ModelNode = {
             0, 0, 0, 1],
             render: robotHead,
             sibling: null,
-            child: null
-        }
-    }
+            child: null,
+            animation: {
+                ax: 0,
+                fx: 0,
+                ay: 0,
+                fy: 0,
+                az: 0,
+                fz: 0,
+            },
+        },
+        animation: {
+            ax: 0,
+            fx: 0,
+            ay: 0,
+            fy: 0,
+            az: 0,
+            fz: 0,
+        },
+    },
+    animation: {
+        ax: 0,
+        fx: 0,
+        ay: -5,
+        fy: 0.1,
+        az: -1.5,
+        fz: 0.1,
+    },
 }
